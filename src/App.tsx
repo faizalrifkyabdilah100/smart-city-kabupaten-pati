@@ -2,8 +2,8 @@
 import { MemoryRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
-import GlobalBackground from './components/GlobalBackground';
-import PageTransition from './components/PageTransition';
+import GlobalBackground from './components/layout/GlobalBackground';
+import PageTransition from './components/common/PageTransition';
 
 import Home from './pages/Home';
 import LingkunganHidup from './pages/LingkunganHidup';

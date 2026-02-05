@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import Navigasi
-import { services } from '../data/services'; 
+import { services } from '../../data/services'; 
 
 const DockMenu: React.FC = () => {
   const [hoveredDoc, setHoveredDoc] = useState<number | null>(null);

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { services, type Service } from '../data/services';
-import ServiceCard from '../components/ServiceCard';
-import Navbar from '../components/Navbar';
-import PopupView from '../components/PopupView';
-import SmartCityLayout from '../components/SmartCityLayout'; // Import Layout Baru
-import logoSmartCity from '../assets/logo-smart-city2.png';
+import ServiceCard from '../components/common/ServiceCard';
+import Navbar from '../components/layout/Navbar';
+import PopupView from '../components/common/PopupView';
+import SmartCityLayout from '../components/layout/SmartCityLayout'; // Import Layout Baru
+import logoSmartCity from '../assets/images/logo-smart-city2.png';
 
 const Home: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);

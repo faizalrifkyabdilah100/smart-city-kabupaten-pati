@@ -1,5 +1,5 @@
 import React from 'react';
-import SmartCityLayout from '../components/SmartCityLayout';
+import SmartCityLayout from '../components/layout/SmartCityLayout';
 
 const Infrastruktur: React.FC = () => {
   return (
