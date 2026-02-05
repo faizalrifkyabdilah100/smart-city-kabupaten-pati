@@ -1,10 +1,4 @@
-export interface Service {
-  id: number;
-  title: string;
-  icon: string;
-  angle: number;
-  path?: string; 
-}
+import { type Service } from '../types/index'; // Import dari file types
 
 export const services: Service[] = [
   // 1. ATAS (Login) - Tetap tanpa path (Popup)

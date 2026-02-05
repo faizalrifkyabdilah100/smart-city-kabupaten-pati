@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { services, type Service } from '../data/services';
+import { services } from '../data/services'; // Ambil DATANYA dari sini
+import { type Service } from '../types/index';          // Ambil TIPENYA dari sini
 import ServiceCard from '../components/common/ServiceCard';
 import Navbar from '../components/layout/Navbar';
 import PopupView from '../components/common/PopupView';

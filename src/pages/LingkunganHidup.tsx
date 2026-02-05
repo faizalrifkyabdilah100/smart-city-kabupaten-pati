@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import SmartCityLayout from '../components/layout/SmartCityLayout';
+import SmartCityLayout from '../components/layout/SmartCityLayout'; // Sesuaikan path jika folder layout ada
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend 
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-import { dataAdiwiyata, dataTPA, dataKomposisi, dataSampah, dataRTH, dataPerusahaan } from '../data/dashboardData';
 
-// === TYPE DEFINITIONS ===
-type WidgetId = 'tpa' | 'sampah' | 'perusahaan' | 'adiwiyata' | 'komposisi' | 'rth';
+// IMPORT TIPE & DATA DARI LUAR (CLEAN CODE)
+import { type WidgetId } from '../types';
+import { 
+  dataAdiwiyata, dataTPA, dataKomposisi, 
+  dataSampah, dataRTH, dataPerusahaan 
+} from '../data/dashboardData';
 
 // === KOMPONEN UTAMA ===
 const LingkunganHidup: React.FC = () => {
@@ -24,8 +27,8 @@ const LingkunganHidup: React.FC = () => {
         return (
           <div className="flex-1 flex flex-col justify-center gap-4 h-full">
             <div className={`flex justify-between ${isExpanded ? 'text-lg' : 'text-xs'} text-blue-200`}>
-              <span>Terisi: <b>1.000 Ton</b></span>
-              <span>Kapasitas: <b>2.000 Ton</b></span>
+              <span>Terisi: <b>{dataTPA.terisi.toLocaleString()} Ton</b></span>
+              <span>Kapasitas: <b>{dataTPA.kapasitas.toLocaleString()} Ton</b></span>
             </div>
             
             <div className={`w-full ${isExpanded ? 'h-8' : 'h-4'} bg-slate-800 rounded-full overflow-hidden relative border border-slate-600 shadow-inner`}>
@@ -236,11 +239,6 @@ const LingkunganHidup: React.FC = () => {
         <AnimatePresence>
           {activeId && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-               {/* UPDATE DISINI: 
-                 - Opacity diturunkan jadi 30% (bg-slate-900/30)
-                 - Blur dinaikkan (backdrop-blur-md)
-                 Efek: Frosted Glass
-               */}
                <motion.div 
                  initial={{ opacity: 0 }} 
                  animate={{ opacity: 1 }} 
