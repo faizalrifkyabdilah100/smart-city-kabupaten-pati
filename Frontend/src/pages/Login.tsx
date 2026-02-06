@@ -30,7 +30,7 @@ const Login: React.FC = () => {
         // SUKSES
         console.log('Login Berhasil:', result.data);
         localStorage.setItem('user_data', JSON.stringify(result.data));
-        navigate('/'); // Balik ke Home
+        navigate('/manajemen-user'); // Ke halaman Manajemen User
       } else {
         // GAGAL
         setErrorMsg(result.messages?.error || 'Login Gagal. Periksa username/password.');
@@ -91,6 +91,16 @@ const Login: React.FC = () => {
             {isLoading ? 'Memuat...' : 'Masuk'}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="text-sm text-slate-200 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg transition-all"
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
       </motion.div>
     </div>
   );

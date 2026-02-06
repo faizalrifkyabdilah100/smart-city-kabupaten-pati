@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 
 const Infrastruktur: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <SmartCityLayout>
       <div className="w-full h-full flex flex-col justify-between">
@@ -15,8 +18,11 @@ const Infrastruktur: React.FC = () => {
                <p className="text-blue-200 text-lg mt-2 font-light">Monitoring pembangunan & tata ruang kota</p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 text-white font-mono">
-               {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 text-white font-mono">
+                 {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </div>
+              <button onClick={() => navigate('/')} className="text-sm bg-white/5 hover:bg-white/10 text-white px-3 py-1 rounded">Kembali ke Beranda</button>
             </div>
         </div>
 

@@ -42,3 +42,13 @@ export interface RTHData {
   target: number;
   luas: number;
 }
+
+// Tipe Data User untuk CRUD
+export interface User {
+  id: number;
+  username: string;
+  nama: string;
+  opd: string;
+  role: 'super_admin' | 'admin';
+  password?: string; // Opsional (cuma dipakai pas kirim data tambah/edit)
+}

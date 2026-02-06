@@ -104,16 +104,19 @@ const GlobalBackground: React.FC = () => {
         style={{ 
           backgroundImage: "url('/peta-pati-clean.png')",
           transform: `translate(${mousePos.x * -0.02}px, ${mousePos.y * -0.02}px) scale(1.35)`,
-          filter: "invert(1) grayscale(100%) brightness(1.5) opacity(0.5)",
-          mixBlendMode: "screen" 
+          filter: "invert(1) grayscale(100%) brightness(1.2) opacity(0.35)",
+          mixBlendMode: "overlay" 
         }}
       ></div>
 
-      {/* 2. LAYER GRADIENT BIRU */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-950/80 via-blue-900/60 to-blue-950/80 backdrop-blur-[1px]"></div>
+      {/* 2. LAYER GRADIENT BIRU TERANG */}
+      <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/50 via-blue-800/40 to-indigo-900/50 backdrop-blur-sm"></div>
+      
+      {/* 2B. LAYER GRADIENT ACCENT */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-600/10 to-transparent"></div>
 
       {/* 3. LAYER PARTIKEL BERGERAK */}
-      <div className="absolute inset-0 opacity-70" style={{ transform: `translate(${mousePos.x * -0.01}px, ${mousePos.y * -0.01}px)` }}>
+      <div className="absolute inset-0 opacity-60" style={{ transform: `translate(${mousePos.x * -0.01}px, ${mousePos.y * -0.01}px)` }}>
          <ParticleBackground />
       </div>
     </div>

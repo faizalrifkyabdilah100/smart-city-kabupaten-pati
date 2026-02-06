@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SmartCityLayout from '../components/layout/SmartCityLayout'; // Sesuaikan path jika folder layout ada
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
@@ -16,6 +17,7 @@ import {
 // === KOMPONEN UTAMA ===
 const LingkunganHidup: React.FC = () => {
   const [activeId, setActiveId] = useState<WidgetId | null>(null);
+  const navigate = useNavigate();
 
   // === FUNGSI RENDER KONTEN ===
   const renderContent = (id: WidgetId, isExpanded: boolean) => {
@@ -192,14 +194,17 @@ const LingkunganHidup: React.FC = () => {
       <div className="w-full h-full flex flex-col">
         
         {/* HEADER */}
-        <div className="w-full px-8 py-4 flex flex-row justify-between items-center animate-slide-down shrink-0 z-20">
+          <div className="w-full px-8 py-4 flex flex-row justify-between items-center animate-slide-down shrink-0 z-20">
             <div>
                <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight drop-shadow-lg">
                  Dashboard <span className="text-green-400">Lingkungan Hidup</span>
                </h1>
             </div>
-            <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-white font-mono text-xs md:text-sm shadow-lg">
-               {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-white font-mono text-xs md:text-sm shadow-lg">
+                {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </div>
+              <button onClick={() => navigate('/')} className="text-sm bg-white/5 hover:bg-white/10 text-white px-3 py-1 rounded">Kembali ke Beranda</button>
             </div>
         </div>
 

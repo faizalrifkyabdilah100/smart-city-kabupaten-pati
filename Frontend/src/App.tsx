@@ -1,5 +1,5 @@
-// 1. GANTI BrowserRouter JADI MemoryRouter (Sesuai kode Bos)
-import { MemoryRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+// 1. UBAH DARI MemoryRouter KE BrowserRouter
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 import GlobalBackground from './components/layout/GlobalBackground';
@@ -7,11 +7,13 @@ import PageTransition from './components/common/PageTransition';
 
 // === IMPORT HALAMAN ===
 import Home from './pages/Home';
-import Login from './pages/Login'; // <--- JANGAN LUPA IMPORT INI
+import Login from './pages/Login';
+import ManajemenUser from './pages/ManajemenUser'; // Pastikan ini sudah di-import
 import LingkunganHidup from './pages/LingkunganHidup';
 import Infrastruktur from './pages/Infrastruktur';
 import Kesehatan from './pages/Kesehatan';
 import SosialMedia from './pages/SosialMedia';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -23,8 +25,20 @@ const AnimatedRoutes = () => {
         {/* Rute Home */}
         <Route path="/" element={<PageTransition><Home /></PageTransition>} />
         
-        {/* Rute Login (TAMBAHKAN INI) */}
+        {/* Rute Login */}
         <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+
+        {/* Rute Admin (Manajemen User) */}
+        <Route
+          path="/manajemen-user"
+          element={
+            <PageTransition>
+              <ProtectedRoute>
+                <ManajemenUser />
+              </ProtectedRoute>
+            </PageTransition>
+          }
+        />
 
         {/* Rute Dashboard Lainnya */}
         <Route path="/lingkungan-hidup" element={<PageTransition><LingkunganHidup /></PageTransition>} />
@@ -39,10 +53,10 @@ const AnimatedRoutes = () => {
 
 function App() {
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-900 text-white">
+    <div className="relative w-screen h-screen overflow-hidden bg-slate-800 text-white">
       <GlobalBackground />
       
-      {/* Router Wrapper */}
+      {/* 2. Router sekarang pakai BrowserRouter (Web Standar) */}
       <Router>
         <AnimatedRoutes />
       </Router>
