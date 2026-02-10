@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../data/services'; 
 import { type Service } from '../types'; // Pastikan path import types benar
@@ -8,10 +8,69 @@ import PopupView from '../components/common/PopupView';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import logoSmartCity from '../assets/images/logo-smart-city2.png'; // Pastikan gambar ada di sini
 
+type UserInfo = {
+  id?: number;
+  username?: string;
+  nama?: string;
+  role?: string;
+  opd?: string;
+};
+
 const Home: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [activePopup, setActivePopup] = useState<string | null>(null);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const navigate = useNavigate();
+
+  // Load user dari localStorage dan listen perubahan
+  useEffect(() => {
+    const updateUser = () => {
+      try {
+        const raw = localStorage.getItem('user_data');
+        if (raw) setUser(JSON.parse(raw));
+        else setUser(null);
+      } catch (e) {
+        setUser(null);
+      }
+    };
+
+    updateUser();
+
+    // Listen untuk custom events
+    const handleLoginSuccess = () => {
+      updateUser();
+    };
+
+    const handleLogout = () => {
+      updateUser();
+    };
+
+    window.addEventListener('user_login_success', handleLoginSuccess as EventListener);
+    window.addEventListener('user_logout_success', handleLogout as EventListener);
+
+    return () => {
+      window.removeEventListener('user_login_success', handleLoginSuccess as EventListener);
+      window.removeEventListener('user_logout_success', handleLogout as EventListener);
+    };
+  }, []);
+
+  // Modifikasi services berdasarkan login status
+  const displayServices = services.map((item) => {
+    if (item.title === 'Login' && user) {
+      // Jika sudah login, ubah Login menjadi Manajemen User
+      return {
+        ...item,
+        title: 'Manajemen User',
+        icon: '/user.png',
+        path: '/manajemen-user'
+      };
+    }
+    if (item.title === 'Login' && !user) {
+      // Jika belum login, tampilkan Login seperti biasa
+      return item;
+    }
+    return item;
+  });
 
   // FUNGSI NAVIGASI PINTAR
   const handleCardClick = (item: Service) => {
@@ -61,7 +120,7 @@ const Home: React.FC = () => {
           </div>
 
           {/* === ITEMS ORBIT (MENU) === */}
-          {services.map((item) => (
+          {displayServices.map((item) => (
             <div 
                key={item.id} 
                onClick={() => handleCardClick(item)} 

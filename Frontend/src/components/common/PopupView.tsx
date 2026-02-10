@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   type: string | null;
@@ -6,10 +7,55 @@ interface Props {
 }
 
 const PopupView: React.FC<Props> = ({ type, onClose }) => {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
   if (!type) return null;
 
   // === 1. TAMPILAN KHUSUS: LOGIN ===
   if (type === 'Login') {
+    const handleLogin = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsLoading(true);
+      setErrorMsg('');
+
+      try {
+        // Pastikan Backend CI4 nyala di port 8080
+        const response = await fetch('http://localhost:8080/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // SUKSES - Simpan data user dan redirect
+          console.log('Login Berhasil:', result.data);
+          localStorage.setItem('user_data', JSON.stringify(result.data));
+          
+          // Trigger event untuk update Navbar
+          window.dispatchEvent(new Event('user_login_success'));
+          
+          setUsername('');
+          setPassword('');
+          onClose(); // Tutup popup
+          navigate('/'); // Kembali ke home
+        } else {
+          // GAGAL
+          setErrorMsg(result.messages?.error || 'Login Gagal. Periksa username/password.');
+        }
+      } catch (err) {
+        console.error(err);
+        setErrorMsg('Gagal terhubung ke server Backend.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     return (
       <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
         {/* Tombol Close */}
@@ -25,16 +71,41 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
           <h2 className="text-2xl font-bold text-gray-800 mb-1">Login Smart City</h2>
           <p className="text-sm text-gray-500 mb-6">Akses Layanan Pemerintahan Terpadu</p>
 
-          {/* Form Input Dummy */}
-          <div className="w-full space-y-4 mb-6">
-            <input type="text" placeholder="NIK / Username" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-            <input type="password" placeholder="Password" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-          </div>
+          {errorMsg && (
+            <div className="w-full bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4 border border-red-300">
+              {errorMsg}
+            </div>
+          )}
 
-          {/* Tombol Aksi */}
-          <button className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
-             MASUK SEKARANG
-          </button>
+          {/* Form Input */}
+          <form onSubmit={handleLogin} className="w-full">
+            <div className="w-full space-y-4 mb-6">
+              <input 
+                type="text" 
+                placeholder="NIK / Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              />
+              <input 
+                type="password" 
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              />
+            </div>
+
+            {/* Tombol Aksi */}
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isLoading ? 'Memproses...' : 'MASUK SEKARANG'}
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -59,7 +130,7 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
       ];
       break;
 
-    case 'Infrastruktur Pembangunan':
+    case 'Infrastruktur':
       title = "Layanan Infrastruktur";
       iconHeader = "🏗️";
       buttons = [
@@ -81,7 +152,7 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
       ];
       break;
 
-    case 'Sosial Media Kominfo':
+    case 'Kominfo':
       title = "Portal Informasi & Sosmed";
       iconHeader = "📢";
       buttons = [

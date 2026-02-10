@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import Navigasi
 import { services } from '../../data/services';
+import logoSmartCity from '../../assets/images/logo-smart-city2.png';
 // import { type Service } from '../../types/index'; // Sesuaikan path '../types' atau '../../types' tergantung posisi file
 
 const DockMenu: React.FC = () => {
   const [hoveredDoc, setHoveredDoc] = useState<number | null>(null);
   const navigate = useNavigate(); // Inisialisasi navigasi
 
+  // Buat home item
+  const homeItem = { 
+    id: 0, 
+    title: 'Home',
+    icon: logoSmartCity,
+    path: '/'
+  };
+
   // Ambil semua item KECUALI Login (id: 1)
-  const dockItems = services.filter(item => item.id !== 1);
+  const dockItems = [homeItem, ...services.filter(item => item.id !== 1)];
 
   // Fungsi saat icon diklik
   const handleDockClick = (path?: string) => {

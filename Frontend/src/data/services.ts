@@ -22,7 +22,7 @@ export const services: Service[] = [
   // 3. KANAN BAWAH (Infrastruktur)
   { 
     id: 3, 
-    title: "Infrastruktur Pembangunan", 
+    title: "Infrastruktur", 
     icon: "/infrastruktur2.png", 
     angle: 50,
     path: "/infrastruktur"
@@ -40,7 +40,7 @@ export const services: Service[] = [
   // 5. KIRI (Sosial Media)
   { 
     id: 5, 
-    title: "Sosial Media Kominfo", 
+    title: "Kominfo", 
     icon: "/sosmed2.png", 
     angle: 180,
     path: "/sosial-media"

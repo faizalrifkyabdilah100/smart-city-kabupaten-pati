@@ -108,7 +108,7 @@ const ManajemenUser: React.FC = () => {
       ></div>
 
       {/* Navbar */}
-      <Navbar show={true} />
+      <Navbar show={true} showLogout={false} />
 
       {/* KONTAINER UTAMA (UPDATED: mt-36 & z-30 biar tidak ketutupan Navbar) */}
       <div className="max-w-6xl mx-auto relative z-30 mt-36">
@@ -119,13 +119,21 @@ const ManajemenUser: React.FC = () => {
             <p className="text-slate-400 text-sm">Kelola akses admin OPD dan Super Admin</p>
           </div>
           
-          {/* TOMBOL TAMBAH (UPDATED: z-50 & pointer-events-auto biar bisa diklik) */}
-          <button 
-            onClick={handleAdd}
-            className="relative z-50 pointer-events-auto cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
-          >
-            + Tambah User
-          </button>
+          {/* TOMBOL TAMBAH & KEMBALI */}
+          <div className="flex gap-3">
+            <button 
+              onClick={() => navigate('/')}
+              className="relative z-50 pointer-events-auto cursor-pointer bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-slate-500/20 transition-all flex items-center gap-2"
+            >
+              ← Kembali ke Home
+            </button>
+            <button 
+              onClick={handleAdd}
+              className="relative z-50 pointer-events-auto cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
+            >
+              + Tambah User
+            </button>
+          </div>
         </div>
 
         {/* TABEL DATA */}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface Props {
   show: boolean;
+  showLogout?: boolean;
 }
 
 type UserInfo = {
@@ -13,24 +14,58 @@ type UserInfo = {
   opd?: string;
 };
 
-const Navbar: React.FC<Props> = ({ show }) => {
+const Navbar: React.FC<Props> = ({ show, showLogout = true }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserInfo | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('user_data');
-      if (raw) setUser(JSON.parse(raw));
-      else setUser(null);
-    } catch (e) {
-      setUser(null);
-    }
+    // Fungsi untuk update user dari localStorage
+    const updateUser = () => {
+      try {
+        const raw = localStorage.getItem('user_data');
+        if (raw) setUser(JSON.parse(raw));
+        else setUser(null);
+      } catch (e) {
+        setUser(null);
+      }
+    };
+
+    // Update saat mount
+    updateUser();
+
+    // Listen untuk perubahan storage (dari tab lain atau PopupView)
+    const handleStorageChange = () => {
+      updateUser();
+    };
+
+    // Listen untuk custom event dari PopupView
+    const handleLoginSuccess = () => {
+      updateUser();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('user_login_success', handleLoginSuccess as EventListener);
+    window.addEventListener('user_logout_success', handleLoginSuccess as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('user_login_success', handleLoginSuccess as EventListener);
+      window.removeEventListener('user_logout_success', handleLoginSuccess as EventListener);
+    };
   }, []);
+
+  const handleUserIconClick = () => {
+    navigate('/manajemen-user');
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('user_data');
-    // optional: remove other auth keys if any
-    navigate('/login');
+    setUser(null);
+    
+    // Trigger event untuk update UI
+    window.dispatchEvent(new Event('user_logout_success'));
+    
+    navigate('/');
   };
 
   return (
@@ -51,12 +86,51 @@ const Navbar: React.FC<Props> = ({ show }) => {
         <div className="ml-2 flex items-center gap-3">
           {user ? (
             <>
-              <div className="text-sm text-slate-200">Anda: <span className="font-semibold">{user.nama || user.username}</span></div>
-              <div className="text-xs text-slate-300 px-3 py-1 rounded-full bg-white/5 border border-white/10">{user.role?.toUpperCase() || '-'}</div>
-              <button onClick={handleLogout} className="text-sm bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-md shadow-sm">Logout</button>
+              {/* Info User dan Icon User */}
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <div className="text-sm text-slate-200">
+                    <span className="font-semibold">{user.nama || user.username}</span>
+                  </div>
+                  <div className="text-xs text-slate-300">{user.role?.toUpperCase() || '-'}</div>
+                </div>
+                
+                {/* Icon User - Clickable */}
+                <button 
+                  onClick={handleUserIconClick}
+                  className="ml-2 p-2.5 bg-blue-600 hover:bg-blue-500 rounded-full transition-colors shadow-lg hover:shadow-blue-500/50 flex items-center justify-center"
+                  title="Buka Manajemen User"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Logout Button - Hanya tampil jika showLogout true */}
+              {showLogout && (
+                <button 
+                  onClick={handleLogout} 
+                  className="text-sm bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-md shadow-sm transition-colors"
+                >
+                  Logout
+                </button>
+              )}
             </>
           ) : (
-            <button onClick={() => navigate('/login')} className="text-sm bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md">Login</button>
+            <>
+              {/* Icon Login - Clickable */}
+              <button 
+                onClick={() => navigate('/login')}
+                className="p-2.5 bg-blue-600 hover:bg-blue-500 rounded-full transition-colors shadow-lg hover:shadow-blue-500/50 flex items-center justify-center"
+                title="Login"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+              </button>
+              <span className="text-sm text-slate-300">Login</span>
+            </>
           )}
         </div>
       </div>

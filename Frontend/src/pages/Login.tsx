@@ -30,7 +30,11 @@ const Login: React.FC = () => {
         // SUKSES
         console.log('Login Berhasil:', result.data);
         localStorage.setItem('user_data', JSON.stringify(result.data));
-        navigate('/manajemen-user'); // Ke halaman Manajemen User
+        
+        // Trigger event untuk update Navbar
+        window.dispatchEvent(new Event('user_login_success'));
+        
+        navigate('/'); // Ke halaman Home, bukan ke Manajemen User
       } else {
         // GAGAL
         setErrorMsg(result.messages?.error || 'Login Gagal. Periksa username/password.');
