@@ -12,7 +12,7 @@ import ManajemenUser from './pages/ManajemenUser'; // Pastikan ini sudah di-impo
 import LingkunganHidup from './pages/LingkunganHidup';
 import Infrastruktur from './pages/Infrastruktur';
 import Kesehatan from './pages/Kesehatan';
-import SosialMedia from './pages/SosialMedia';
+import Kominfo from './pages/Kominfo';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 const AnimatedRoutes = () => {
@@ -21,10 +21,10 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        
+
         {/* Rute Home */}
         <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-        
+
         {/* Rute Login */}
         <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
 
@@ -44,8 +44,8 @@ const AnimatedRoutes = () => {
         <Route path="/lingkungan-hidup" element={<PageTransition><LingkunganHidup /></PageTransition>} />
         <Route path="/infrastruktur" element={<PageTransition><Infrastruktur /></PageTransition>} />
         <Route path="/kesehatan" element={<PageTransition><Kesehatan /></PageTransition>} />
-        <Route path="/sosial-media" element={<PageTransition><SosialMedia /></PageTransition>} />
-      
+        <Route path="/kominfo" element={<PageTransition><Kominfo /></PageTransition>} />
+
       </Routes>
     </AnimatePresence>
   );
@@ -55,12 +55,12 @@ function App() {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-800 text-white">
       <GlobalBackground />
-      
+
       {/* 2. Router sekarang pakai BrowserRouter (Web Standar) */}
       <Router>
         <AnimatedRoutes />
       </Router>
-      
+
     </div>
   );
 }

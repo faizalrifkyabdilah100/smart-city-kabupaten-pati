@@ -9,18 +9,18 @@ interface LayoutProps {
 const SmartCityLayout: React.FC<LayoutProps> = ({ children, showDock = true }) => {
   return (
     // z-10 penting biar konten ada DI ATAS background
-    <div className="relative z-10 w-full h-screen flex flex-col justify-between font-sans overflow-hidden">
-      
-      {/* AREA KONTEN (Header, Widget, dll) */}
-      <div className="flex-1 w-full relative flex flex-col">
-         {children}
+    <div className="relative z-10 w-full h-screen font-sans overflow-hidden flex flex-col">
+
+      {/* AREA KONTEN (Header, Widget, dll) - scrollable */}
+      <div className="flex-1 w-full relative flex flex-col overflow-y-auto no-scrollbar" style={{ paddingBottom: showDock ? '120px' : '0' }}>
+        {children}
       </div>
 
-      {/* DOCK MENU */}
+      {/* DOCK MENU - fixed di bawah layar */}
       {showDock && (
-         <div className="relative z-50 w-full animate-slide-up">
-           <DockMenu />
-         </div>
+        <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up">
+          <DockMenu />
+        </div>
       )}
 
     </div>

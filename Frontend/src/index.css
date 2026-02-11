@@ -9,3 +9,12 @@ body {
   overflow-x: hidden;
   background-color: #1a2a4e;
 }
+
+/* Utility: sembunyikan scrollbar tapi tetap bisa scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
