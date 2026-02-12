@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../data/services';
-import { type Service } from '../types'; // Pastikan path import types benar
+import { type Service } from '../types';
 import ServiceCard from '../components/common/ServiceCard';
 import Navbar from '../components/layout/Navbar';
 import PopupView from '../components/common/PopupView';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
-import logoSmartCity from '../assets/images/logo-smart-city2.png'; // Pastikan gambar ada di sini
+import logoSmartCity from '../assets/images/logo-smart-city2.png';
 
 type UserInfo = {
   id?: number;
@@ -36,7 +36,6 @@ const Home: React.FC = () => {
 
     updateUser();
 
-    // Listen untuk custom events
     const handleLoginSuccess = () => {
       updateUser();
     };
@@ -57,7 +56,6 @@ const Home: React.FC = () => {
   // Modifikasi services berdasarkan login status
   const displayServices = services.map((item) => {
     if (item.title === 'Login' && user) {
-      // Jika sudah login, ubah Login menjadi Manajemen User
       return {
         ...item,
         title: 'Manajemen User',
@@ -66,7 +64,6 @@ const Home: React.FC = () => {
       };
     }
     if (item.title === 'Login' && !user) {
-      // Jika belum login, tampilkan Login seperti biasa
       return item;
     }
     return item;
@@ -75,10 +72,8 @@ const Home: React.FC = () => {
   // FUNGSI NAVIGASI PINTAR
   const handleCardClick = (item: Service) => {
     if (item.path) {
-      // Kalau punya alamat, pergi ke sana
       navigate(item.path);
     } else {
-      // Kalau tidak punya, buka popup
       setActivePopup(item.title);
     }
   };
@@ -93,27 +88,44 @@ const Home: React.FC = () => {
         <Navbar show={!isHovered && !activePopup} />
 
         {/* === ORBIT SYSTEM === */}
+        {/* Responsive: scale down on smaller screens */}
         <div
-          className={`relative flex items-center justify-center w-[900px] h-[900px] transition-all duration-700 ease-in-out ${activePopup ? 'scale-150 opacity-0 pointer-events-none blur-sm' : 'scale-100 opacity-100'}`}
+          className={`relative flex items-center justify-center 
+            w-[400px] h-[400px] 
+            sm:w-[550px] sm:h-[550px] 
+            md:w-[700px] md:h-[700px] 
+            lg:w-[900px] lg:h-[900px] 
+            transition-all duration-700 ease-in-out ${activePopup ? 'scale-150 opacity-0 pointer-events-none blur-sm' : 'scale-100 opacity-100'}`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          onClick={() => {
+            // Untuk mobile: toggle isHovered on tap
+            if (window.innerWidth < 768) {
+              setIsHovered(!isHovered);
+            }
+          }}
         >
           {/* Garis Lingkaran Orbit */}
-          <div className={`absolute w-[680px] h-[680px] border border-white/20 rounded-full transition-all duration-700 ${isHovered ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}></div>
+          <div className={`absolute 
+            w-[320px] h-[320px] 
+            sm:w-[420px] sm:h-[420px] 
+            md:w-[550px] md:h-[550px] 
+            lg:w-[680px] lg:h-[680px] 
+            border border-white/20 rounded-full transition-all duration-700 ${isHovered ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}></div>
 
           {/* === LOGO TENGAH === */}
           <div className={`absolute z-20 flex flex-col items-center justify-center transition-all duration-700 ease-out ${isHovered ? 'scale-100' : 'scale-125'}`}>
-            <div className={`absolute inset-0 bg-radial-gradient from-white/20 to-transparent blur-3xl rounded-full transition-all duration-500 ${isHovered ? 'w-96 h-96 opacity-60' : 'w-80 h-80 opacity-40 animate-pulse'}`}></div>
+            <div className={`absolute inset-0 bg-radial-gradient from-white/20 to-transparent blur-3xl rounded-full transition-all duration-500 ${isHovered ? 'w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 opacity-60' : 'w-40 h-40 sm:w-56 sm:h-56 lg:w-80 lg:h-80 opacity-40 animate-pulse'}`}></div>
 
-            <div className="relative w-80 h-80 flex items-center justify-center transition-all duration-500 z-50">
+            <div className="relative w-40 h-40 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-80 lg:h-80 flex items-center justify-center transition-all duration-500 z-50">
               <img src={logoSmartCity} alt="Smart City Logo" className="w-full h-full object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.5)]" />
             </div>
 
-            <div className="absolute -bottom-16 flex flex-col items-center transition-all duration-300 w-full">
-              <span className="text-lg md:text-xl text-yellow-400 font-extrabold tracking-[0.2em] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] border-b-2 border-yellow-400/50 pb-2 whitespace-nowrap">
+            <div className="absolute -bottom-12 sm:-bottom-14 lg:-bottom-16 flex flex-col items-center transition-all duration-300 w-full">
+              <span className="text-sm sm:text-base md:text-lg lg:text-xl text-yellow-400 font-extrabold tracking-[0.15em] sm:tracking-[0.2em] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] border-b-2 border-yellow-400/50 pb-2 whitespace-nowrap">
                 Portal Layanan Terpadu
               </span>
-              <span className={`text-[10px] text-cyan-200 mt-3 tracking-widest uppercase font-semibold bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10 transition-all duration-500 ${isHovered ? 'opacity-0 translate-y-5' : 'opacity-100 animate-bounce'}`}>
+              <span className={`text-[8px] sm:text-[10px] text-cyan-200 mt-2 sm:mt-3 tracking-widest uppercase font-semibold bg-black/20 px-2 sm:px-3 py-1 rounded-full backdrop-blur-sm border border-white/10 transition-all duration-500 ${isHovered ? 'opacity-0 translate-y-5' : 'opacity-100 animate-bounce'}`}>
                 Sentuh Untuk Akses Menu
               </span>
             </div>
@@ -123,7 +135,12 @@ const Home: React.FC = () => {
           {displayServices.map((item) => (
             <div
               key={item.id}
-              onClick={() => handleCardClick(item)}
+              onClick={(e) => {
+                if (isHovered) {
+                  e.stopPropagation();
+                  handleCardClick(item);
+                }
+              }}
               className="absolute inset-0 flex items-center justify-center cursor-pointer"
               style={{ pointerEvents: activePopup ? 'none' : 'auto' }}
             >
@@ -136,8 +153,8 @@ const Home: React.FC = () => {
         <PopupView type={activePopup} onClose={() => setActivePopup(null)} />
 
         {/* Footer Logo Kecil */}
-        <div className={`absolute bottom-6 right-6 opacity-80 hover:opacity-100 transition-all duration-500 cursor-pointer z-50 ${activePopup ? 'translate-y-20 opacity-0' : ''}`}>
-          <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-lg shadow-lg flex items-center justify-center p-2 border border-white/20">
+        <div className={`absolute bottom-4 right-4 sm:bottom-6 sm:right-6 opacity-80 hover:opacity-100 transition-all duration-500 cursor-pointer z-50 ${activePopup ? 'translate-y-20 opacity-0' : ''}`}>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-sm rounded-lg shadow-lg flex items-center justify-center p-1.5 sm:p-2 border border-white/20">
             <img src={logoSmartCity} alt="logo footer" className="w-full h-full object-contain" />
           </div>
         </div>

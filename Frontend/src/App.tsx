@@ -53,7 +53,7 @@ const AnimatedRoutes = () => {
 
 function App() {
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-800 text-white">
+    <div className="relative w-screen min-h-screen overflow-x-hidden bg-slate-800 text-white">
       <GlobalBackground />
 
       {/* 2. Router sekarang pakai BrowserRouter (Web Standar) */}

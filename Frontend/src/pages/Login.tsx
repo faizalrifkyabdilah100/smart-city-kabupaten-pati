@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // State Form
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,7 +17,6 @@ const Login: React.FC = () => {
     setErrorMsg('');
 
     try {
-      // Pastikan Backend CI4 nyala di port 8080
       const response = await fetch('http://localhost:8080/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -27,16 +26,11 @@ const Login: React.FC = () => {
       const result = await response.json();
 
       if (response.ok) {
-        // SUKSES
         console.log('Login Berhasil:', result.data);
         localStorage.setItem('user_data', JSON.stringify(result.data));
-        
-        // Trigger event untuk update Navbar
         window.dispatchEvent(new Event('user_login_success'));
-        
-        navigate('/'); // Ke halaman Home, bukan ke Manajemen User
+        navigate('/');
       } else {
-        // GAGAL
         setErrorMsg(result.messages?.error || 'Login Gagal. Periksa username/password.');
       }
     } catch (err) {
@@ -48,59 +42,59 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 relative overflow-hidden px-4 sm:px-6">
       {/* Background Effect */}
       <div className="absolute top-0 left-0 w-full h-full bg-[url('/peta-pati-clean.png')] bg-cover opacity-10 blur-sm"></div>
-      
+
       {/* Login Card */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 bg-slate-900/60 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl w-full max-w-md"
+        className="relative z-10 bg-slate-900/60 backdrop-blur-xl border border-white/10 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md"
       >
-        <h1 className="text-3xl font-bold text-white mb-2 text-center">Login Dashboard</h1>
-        
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center">Login Dashboard</h1>
+
         {errorMsg && (
-          <div className="bg-red-500/20 text-red-200 text-sm p-3 rounded mb-4 text-center border border-red-500/50">
+          <div className="bg-red-500/20 text-red-200 text-xs sm:text-sm p-2.5 sm:p-3 rounded mb-4 text-center border border-red-500/50">
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-6 mt-6">
+        <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
           <div>
-            <label className="block text-slate-300 text-sm mb-2">Username</label>
-            <input 
-              type="text" 
+            <label className="block text-slate-300 text-xs sm:text-sm mb-1.5 sm:mb-2">Username</label>
+            <input
+              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Masukkan username"
             />
           </div>
           <div>
-            <label className="block text-slate-300 text-sm mb-2">Password</label>
-            <input 
-              type="password" 
+            <label className="block text-slate-300 text-xs sm:text-sm mb-1.5 sm:mb-2">Password</label>
+            <input
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
             />
           </div>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all disabled:opacity-50 text-sm sm:text-base"
           >
             {isLoading ? 'Memuat...' : 'Masuk'}
           </button>
         </form>
 
-        <div className="mt-4 text-center">
+        <div className="mt-3 sm:mt-4 text-center">
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="text-sm text-slate-200 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg transition-all"
+            className="text-xs sm:text-sm text-slate-200 bg-white/5 hover:bg-white/10 active:bg-white/15 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all"
           >
             Kembali ke Beranda
           </button>

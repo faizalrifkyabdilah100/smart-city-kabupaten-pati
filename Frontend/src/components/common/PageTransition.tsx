@@ -20,7 +20,7 @@ const PageTransition: React.FC<Props> = ({ children }) => {
       animate="animate"
       exit="exit"
       transition={{ duration: 0.4, ease: "easeInOut" }} // Durasi 0.4 detik
-      className="w-full h-full"
+      className="w-full min-h-full"
     >
       {children}
     </motion.div>
