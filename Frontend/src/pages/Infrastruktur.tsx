@@ -1,5 +1,6 @@
 import React from 'react';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
+import { formatTanggal } from '../utils/formatTanggal';
 
 const Infrastruktur: React.FC = () => {
 
@@ -18,7 +19,7 @@ const Infrastruktur: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <div className="bg-white/10 backdrop-blur-md px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-full border border-white/20 text-white font-mono text-[10px] sm:text-xs md:text-sm">
-              {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              {formatTanggal()}
             </div>
           </div>
         </div>

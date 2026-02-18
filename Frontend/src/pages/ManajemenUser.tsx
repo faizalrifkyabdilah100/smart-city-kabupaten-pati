@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { type User } from '../types';
 import Navbar from '../components/layout/Navbar';
 import UserFormModal from '../components/common/UserFormModal';
+import { API_BASE_URL } from '../config/api';
 
 const ManajemenUser: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const ManajemenUser: React.FC = () => {
   // 2. FUNGSI AMBIL DATA
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/users');
+      const response = await fetch(`${API_BASE_URL}/users`);
       const result = await response.json();
       setUsers(result);
     } catch (error) {
@@ -55,8 +56,8 @@ const ManajemenUser: React.FC = () => {
   // 4. LOGIKA SIMPAN (Create/Update)
   const handleSave = async (formData: any) => {
     const url = modalMode === 'add'
-      ? 'http://localhost:8080/api/users'
-      : `http://localhost:8080/api/users/${selectedUser?.id}`;
+      ? `${API_BASE_URL}/users`
+      : `${API_BASE_URL}/users/${selectedUser?.id}`;
 
     const method = modalMode === 'add' ? 'POST' : 'PUT';
 
@@ -85,7 +86,7 @@ const ManajemenUser: React.FC = () => {
     if (!confirm(`Yakin ingin menghapus user "${nama}"?`)) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/users/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
         method: 'DELETE',
       });
 

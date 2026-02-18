@@ -177,13 +177,6 @@ export const dataKominfoCharts = [
   }
 ];
 
-export const dataServerMetrics = [
-  { metric: 'CPU Usage', value: 45, color: '#3b82f6' },
-  { metric: 'Memory', value: 62, color: '#10b981' },
-  { metric: 'Disk', value: 38, color: '#f59e0b' },
-  { metric: 'Network', value: 71, color: '#ef4444' },
-];
-
 // === DATA TRAFIK INTERNET ===
 export const dataTrafikInternet = {
   totalBandwidth: '1.2 Gbps',
@@ -313,15 +306,4 @@ export const mapLocations = [
     address: 'Jl. Sudirman No.45, Pati',
     info: 'Kantor Dinas Kota Pati'
   }
-];
-
-// Tipe lokasi untuk filter / legend display
-export const locationTypes = [
-  { id: 'all', name: 'Semua Lokasi', icon: '📍', color: '#06b6d4' },
-  { id: 'CCTV', name: 'CCTV', icon: '📹', color: '#ef4444' },
-  { id: 'Government', name: 'Pemerintah', icon: '🏛️', color: '#3b82f6' },
-  { id: 'Security', name: 'Keamanan', icon: '🚨', color: '#f59e0b' },
-  { id: 'Healthcare', name: 'Kesehatan', icon: '🏥', color: '#10b981' },
-  { id: 'Market', name: 'Pasar', icon: '🏪', color: '#8b5cf6' },
-  { id: 'Transportation', name: 'Transportasi', icon: '🚌', color: '#ec4899' }
 ];

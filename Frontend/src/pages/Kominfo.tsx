@@ -3,6 +3,7 @@ import SmartCityLayout from '../components/layout/SmartCityLayout';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
 import { dataKominfoCharts, dataTrafikInternet, cctv, mapLocations } from '../data/dashboardData';
+import { formatTanggal } from '../utils/formatTanggal';
 
 const DEFAULT_MAP_URL = 'https://www.google.com/maps?q=-6.7578,111.1245&z=13&output=embed';
 
@@ -26,7 +27,7 @@ const Kominfo: React.FC = () => {
             <p className="text-slate-300 text-xs sm:text-sm lg:text-base font-light">Dashboard Informasi & Monitoring Media Sosial</p>
           </div>
           <div className="bg-white/10 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-white/20 text-white font-mono text-[10px] sm:text-xs lg:text-sm shadow-lg">
-            {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            {formatTanggal()}
           </div>
         </div>
 
@@ -120,12 +121,13 @@ const Kominfo: React.FC = () => {
                   {cctv.streamUrl ? (
                     <iframe
                       title="CCTV Live Stream"
-                      src={cctv.streamUrl}
+                      src={`${cctv.streamUrl}${cctv.streamUrl.includes('?') ? '&' : '?'}autoplay=1&muted=1`}
                       width="100%"
                       height="100%"
                       className="border-0 w-full h-full"
                       allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      loading="eager"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay *"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-slate-800/20 via-slate-900/50 to-slate-800/20 flex items-center justify-center">

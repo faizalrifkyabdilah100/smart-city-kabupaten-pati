@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../../utils/auth';
 
 interface Props {
   type: string | null;
@@ -22,52 +23,32 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
       setIsLoading(true);
       setErrorMsg('');
 
-      try {
-        // Pastikan Backend CI4 nyala di port 8080
-        const response = await fetch('http://localhost:8080/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password }),
-        });
+      const result = await loginUser(username, password);
 
-        const result = await response.json();
-
-        if (response.ok) {
-          // SUKSES - Simpan data user dan redirect
-          console.log('Login Berhasil:', result.data);
-          localStorage.setItem('user_data', JSON.stringify(result.data));
-          
-          // Trigger event untuk update Navbar
-          window.dispatchEvent(new Event('user_login_success'));
-          
-          setUsername('');
-          setPassword('');
-          onClose(); // Tutup popup
-          navigate('/'); // Kembali ke home
-        } else {
-          // GAGAL
-          setErrorMsg(result.messages?.error || 'Login Gagal. Periksa username/password.');
-        }
-      } catch (err) {
-        console.error(err);
-        setErrorMsg('Gagal terhubung ke server Backend.');
-      } finally {
-        setIsLoading(false);
+      if (result.success) {
+        setUsername('');
+        setPassword('');
+        onClose();
+        navigate('/');
+      } else {
+        setErrorMsg(result.error || 'Login Gagal.');
       }
+
+      setIsLoading(false);
     };
 
     return (
       <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
         {/* Tombol Close */}
         <button onClick={onClose} className="absolute top-6 right-6 text-white hover:text-red-400 transition-colors z-50">
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-           </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
 
         {/* Modal Login */}
         <div className="bg-white rounded-3xl shadow-2xl p-8 w-[400px] flex flex-col items-center relative animate-scale-up border-t-4 border-yellow-400">
-          
+
           <h2 className="text-2xl font-bold text-gray-800 mb-1">Login Smart City</h2>
           <p className="text-sm text-gray-500 mb-6">Akses Layanan Pemerintahan Terpadu</p>
 
@@ -80,30 +61,30 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
           {/* Form Input */}
           <form onSubmit={handleLogin} className="w-full">
             <div className="w-full space-y-4 mb-6">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="NIK / Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
 
             {/* Tombol Aksi */}
-            <button 
+            <button
               type="submit"
               disabled={isLoading}
               className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isLoading ? 'Memproses...' : 'MASUK SEKARANG'}
+              {isLoading ? 'Memproses...' : 'MASUK SEKARANG'}
             </button>
           </form>
         </div>
@@ -112,7 +93,7 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
   }
 
   // === 2. LOGIKA MENU (MENYESUAIKAN services.ts) ===
-  
+
   let title = "";
   let iconHeader = ""; // Icon besar di atas judul popup
   let buttons: { label: string; icon: string; link?: string }[] = [];
@@ -174,40 +155,40 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
   // === 3. TAMPILAN MENU GRID (DINAMIS) ===
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-       
-       {/* Tombol Close Besar */}
-       <button onClick={onClose} className="absolute top-8 right-8 text-white hover:rotate-90 transition-transform duration-300 z-50">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 border-2 border-white rounded-full p-2 hover:bg-white hover:text-black transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+
+      {/* Tombol Close Besar */}
+      <button onClick={onClose} className="absolute top-8 right-8 text-white hover:rotate-90 transition-transform duration-300 z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 border-2 border-white rounded-full p-2 hover:bg-white hover:text-black transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
 
       {/* Header Popup */}
       <div className="flex flex-col items-center mb-10 animate-slide-down">
-         <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-4 shadow-2xl w-24 h-24 flex items-center justify-center mb-4 text-5xl">
-            {iconHeader}
-         </div>
-         <h1 className="text-white text-3xl font-bold tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] border-b-4 border-yellow-400 pb-2">
-            {title}
-         </h1>
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-4 shadow-2xl w-24 h-24 flex items-center justify-center mb-4 text-5xl">
+          {iconHeader}
+        </div>
+        <h1 className="text-white text-3xl font-bold tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] border-b-4 border-yellow-400 pb-2">
+          {title}
+        </h1>
       </div>
 
       {/* Grid Tombol Layanan */}
       <div className="flex flex-wrap justify-center gap-6 max-w-5xl px-4 animate-scale-up">
         {buttons.map((btn, idx) => (
-          <div 
-            key={idx} 
+          <div
+            key={idx}
             className="group bg-white/90 hover:bg-white rounded-2xl p-4 w-40 h-40 md:w-48 md:h-48 flex flex-col items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition-all duration-300 border-b-4 border-transparent hover:border-blue-500"
           >
-             {/* Icon Tombol */}
-             <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-3 text-4xl group-hover:bg-blue-100 transition-colors shadow-inner">
-               {btn.icon}
-             </div>
-             
-             {/* Label Tombol */}
-             <span className="text-center text-sm font-bold text-gray-700 leading-tight group-hover:text-blue-700 px-2">
-               {btn.label}
-             </span>
+            {/* Icon Tombol */}
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-3 text-4xl group-hover:bg-blue-100 transition-colors shadow-inner">
+              {btn.icon}
+            </div>
+
+            {/* Label Tombol */}
+            <span className="text-center text-sm font-bold text-gray-700 leading-tight group-hover:text-blue-700 px-2">
+              {btn.label}
+            </span>
           </div>
         ))}
       </div>

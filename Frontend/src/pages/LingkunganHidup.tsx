@@ -12,6 +12,7 @@ import {
   dataAdiwiyata, dataTPA, dataKomposisi,
   dataSampah, dataRTH, dataPerusahaan
 } from '../data/dashboardData';
+import { formatTanggal } from '../utils/formatTanggal';
 
 // === KOMPONEN UTAMA ===
 const LingkunganHidup: React.FC = () => {
@@ -200,7 +201,7 @@ const LingkunganHidup: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             <div className="bg-white/10 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-white/20 text-white font-mono text-[10px] sm:text-xs md:text-sm shadow-lg">
-              {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              {formatTanggal()}
             </div>
           </div>
         </div>

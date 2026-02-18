@@ -1,63 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { logoutUser } from '../../utils/auth';
 
 interface Props {
   show: boolean;
   showLogout?: boolean;
 }
 
-type UserInfo = {
-  id?: number;
-  username?: string;
-  nama?: string;
-  role?: string;
-  opd?: string;
-};
-
 const Navbar: React.FC<Props> = ({ show, showLogout = true }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<UserInfo | null>(null);
-
-  useEffect(() => {
-    const updateUser = () => {
-      try {
-        const raw = localStorage.getItem('user_data');
-        if (raw) setUser(JSON.parse(raw));
-        else setUser(null);
-      } catch (e) {
-        setUser(null);
-      }
-    };
-
-    updateUser();
-
-    const handleStorageChange = () => {
-      updateUser();
-    };
-
-    const handleLoginSuccess = () => {
-      updateUser();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('user_login_success', handleLoginSuccess as EventListener);
-    window.addEventListener('user_logout_success', handleLoginSuccess as EventListener);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('user_login_success', handleLoginSuccess as EventListener);
-      window.removeEventListener('user_logout_success', handleLoginSuccess as EventListener);
-    };
-  }, []);
+  const user = useAuth();
 
   const handleUserIconClick = () => {
     navigate('/manajemen-user');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user_data');
-    setUser(null);
-    window.dispatchEvent(new Event('user_logout_success'));
+    logoutUser();
     navigate('/');
   };
 
@@ -72,7 +32,7 @@ const Navbar: React.FC<Props> = ({ show, showLogout = true }) => {
       <div className="mt-3 sm:mt-4 md:mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-4">
         <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-full shadow-xl hover:bg-white/20 transition-colors cursor-default">
           <span className="text-white text-[10px] sm:text-xs md:text-sm lg:text-base font-bold tracking-[0.2em] sm:tracking-[0.3em] drop-shadow-md">
-            KABUPATEN PATI
+            KABUPATEN DEMAK
           </span>
         </div>
 

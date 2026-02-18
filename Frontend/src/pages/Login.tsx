@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { loginUser } from '../utils/auth';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -16,29 +17,15 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setErrorMsg('');
 
-    try {
-      const response = await fetch('http://localhost:8080/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+    const result = await loginUser(username, password);
 
-      const result = await response.json();
-
-      if (response.ok) {
-        console.log('Login Berhasil:', result.data);
-        localStorage.setItem('user_data', JSON.stringify(result.data));
-        window.dispatchEvent(new Event('user_login_success'));
-        navigate('/');
-      } else {
-        setErrorMsg(result.messages?.error || 'Login Gagal. Periksa username/password.');
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('Gagal terhubung ke server Backend.');
-    } finally {
-      setIsLoading(false);
+    if (result.success) {
+      navigate('/');
+    } else {
+      setErrorMsg(result.error || 'Login Gagal.');
     }
+
+    setIsLoading(false);
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../data/services';
 import { type Service } from '../types';
@@ -7,51 +7,13 @@ import Navbar from '../components/layout/Navbar';
 import PopupView from '../components/common/PopupView';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import logoSmartCity from '../assets/images/logo-smart-city2.png';
-
-type UserInfo = {
-  id?: number;
-  username?: string;
-  nama?: string;
-  role?: string;
-  opd?: string;
-};
+import { useAuth } from '../hooks/useAuth';
 
 const Home: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [activePopup, setActivePopup] = useState<string | null>(null);
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const user = useAuth();
   const navigate = useNavigate();
-
-  // Load user dari localStorage dan listen perubahan
-  useEffect(() => {
-    const updateUser = () => {
-      try {
-        const raw = localStorage.getItem('user_data');
-        if (raw) setUser(JSON.parse(raw));
-        else setUser(null);
-      } catch (e) {
-        setUser(null);
-      }
-    };
-
-    updateUser();
-
-    const handleLoginSuccess = () => {
-      updateUser();
-    };
-
-    const handleLogout = () => {
-      updateUser();
-    };
-
-    window.addEventListener('user_login_success', handleLoginSuccess as EventListener);
-    window.addEventListener('user_logout_success', handleLogout as EventListener);
-
-    return () => {
-      window.removeEventListener('user_login_success', handleLoginSuccess as EventListener);
-      window.removeEventListener('user_logout_success', handleLogout as EventListener);
-    };
-  }, []);
 
   // Modifikasi services berdasarkan login status
   const displayServices = services.map((item) => {

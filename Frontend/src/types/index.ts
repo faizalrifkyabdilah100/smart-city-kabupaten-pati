@@ -52,3 +52,13 @@ export interface User {
   role: 'super_admin' | 'admin';
   password?: string; // Opsional (cuma dipakai pas kirim data tambah/edit)
 }
+
+// Tipe untuk info user yang sedang login (dari localStorage)
+// Dipakai di: Navbar.tsx, Home.tsx, dan hooks/useAuth.ts
+export interface UserInfo {
+  id?: number;
+  username?: string;
+  nama?: string;
+  role?: string;
+  opd?: string;
+}
