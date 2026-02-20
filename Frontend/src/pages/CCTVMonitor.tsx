@@ -1,70 +1,28 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../hooks/useTheme';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import { formatTanggal } from '../utils/formatTanggal';
-
-// Data 9 CCTV — nanti tinggal ganti streamUrl-nya satu per satu
-const cctvList = [
-    {
-        id: 1,
-        name: 'CCTV 1 — Jl. Diponegoro',
-        location: 'Perempatan Diponegoro, Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 2,
-        name: 'CCTV 2 — Bundaran Timor',
-        location: 'Bundaran Timor, Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 3,
-        name: 'CCTV 3 — Alun-Alun Pati',
-        location: 'Alun-Alun Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 4,
-        name: 'CCTV 4 — Jl. Sudirman',
-        location: 'Jl. Jenderal Sudirman, Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 5,
-        name: 'CCTV 5 — Terminal Bus',
-        location: 'Terminal Bus Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 6,
-        name: 'CCTV 6 — Pasar Pati',
-        location: 'Pasar Tradisional Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 7,
-        name: 'CCTV 7 — Jl. Ahmad Yani',
-        location: 'Jl. Ahmad Yani, Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 8,
-        name: 'CCTV 8 — RS Umum Pati',
-        location: 'Jl. Dr. Sutomo, Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-    {
-        id: 9,
-        name: 'CCTV 9 — Kantor Bupati',
-        location: 'Jl. Diponegoro No.1, Pati',
-        streamUrl: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html',
-    },
-];
+import { fetchCctvData } from '../services/cctvApi';
+import type { CctvItem } from '../services/cctvApi';
 
 const CCTVMonitor: React.FC = () => {
     const { isDark } = useTheme();
     const navigate = useNavigate();
+    const [cctvList, setCctvList] = useState<CctvItem[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadCctv = async () => {
+            const data = await fetchCctvData();
+            if (data) {
+                setCctvList(data.list);
+            }
+            setLoading(false);
+        };
+        loadCctv();
+    }, []);
 
     const cardStyle = isDark
         ? 'bg-slate-900/40 backdrop-blur-md border-white/20'
@@ -109,57 +67,66 @@ const CCTVMonitor: React.FC = () => {
                 </div>
 
                 {/* === CCTV GRID 3x3 === */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 z-10">
-                    {cctvList.map((cam, idx) => (
-                        <motion.div
-                            key={cam.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.08, duration: 0.4 }}
-                            className={`border rounded-2xl overflow-hidden shadow-xl flex flex-col ${cardStyle} hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300`}
-                        >
-                            {/* Camera Header */}
-                            <div className={`border-b px-3 sm:px-4 py-2 flex justify-between items-center shrink-0 ${isDark
-                                ? 'bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border-white/10'
-                                : 'bg-gradient-to-r from-purple-900/15 to-cyan-900/15 border-white/10'
-                                }`}>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-[11px] sm:text-xs text-white truncate">{cam.name}</h3>
-                                    <p className={`text-[9px] sm:text-[10px] truncate ${subTextStyle}`}>{cam.location}</p>
-                                </div>
-                                <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
-                                    <span className="text-[9px] sm:text-[10px] font-bold text-red-400">Live</span>
-                                </div>
-                            </div>
-
-                            {/* Camera Stream */}
-                            <div className="aspect-video bg-black/60 overflow-hidden">
-                                {cam.streamUrl ? (
-                                    <iframe
-                                        title={cam.name}
-                                        src={`${cam.streamUrl}${cam.streamUrl.includes('?') ? '&' : '?'}autoplay=1&muted=1`}
-                                        width="100%"
-                                        height="100%"
-                                        className="border-0 w-full h-full"
-                                        allowFullScreen
-                                        loading="lazy"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay *"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <div className="text-center">
-                                            <svg className="w-8 h-8 text-slate-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                            <p className="text-slate-400 text-[10px]">No Stream</p>
-                                        </div>
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <div className="text-center">
+                            <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                            <p className="text-slate-400 text-sm">Memuat data CCTV...</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 z-10">
+                        {cctvList.map((cam, idx) => (
+                            <motion.div
+                                key={cam.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.08, duration: 0.4 }}
+                                className={`border rounded-2xl overflow-hidden shadow-xl flex flex-col ${cardStyle} hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300`}
+                            >
+                                {/* Camera Header */}
+                                <div className={`border-b px-3 sm:px-4 py-2 flex justify-between items-center shrink-0 ${isDark
+                                    ? 'bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border-white/10'
+                                    : 'bg-gradient-to-r from-purple-900/15 to-cyan-900/15 border-white/10'
+                                    }`}>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-[11px] sm:text-xs text-white truncate">{cam.name}</h3>
+                                        <p className={`text-[9px] sm:text-[10px] truncate ${subTextStyle}`}>{cam.location}</p>
                                     </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+                                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
+                                        <span className="text-[9px] sm:text-[10px] font-bold text-red-400">Live</span>
+                                    </div>
+                                </div>
+
+                                {/* Camera Stream */}
+                                <div className="aspect-video bg-black/60 overflow-hidden">
+                                    {cam.streamUrl ? (
+                                        <iframe
+                                            title={cam.name}
+                                            src={`${cam.streamUrl}${cam.streamUrl.includes('?') ? '&' : '?'}autoplay=1&muted=1`}
+                                            width="100%"
+                                            height="100%"
+                                            className="border-0 w-full h-full"
+                                            allowFullScreen
+                                            loading="lazy"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay *"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <div className="text-center">
+                                                <svg className="w-8 h-8 text-slate-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                                <p className="text-slate-400 text-[10px]">No Stream</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
 
             </div>
         </SmartCityLayout>

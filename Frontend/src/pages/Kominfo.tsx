@@ -3,12 +3,50 @@ import { Link } from 'react-router-dom';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
-import { dataKominfoCharts, cctv, mapLocations } from '../data/dashboardData';
+import { mapLocations } from '../data/dashboardData';
 import { formatTanggal } from '../utils/formatTanggal';
 import { useTheme } from '../hooks/useTheme';
 import { fetchTrafficData, transformTrafficData } from '../services/trafficApi';
+import { fetchCctvData } from '../services/cctvApi';
+import type { CctvMain } from '../services/cctvApi';
+import { fetchServerData, fetchServerData2, calcPercent, formatGB, formatMHz, getUsageColor } from '../services/serverApi';
+import type { ServerData } from '../services/serverApi';
 
 const DEFAULT_MAP_URL = 'https://www.google.com/maps?q=-6.7578,111.1245&z=13&output=embed';
+
+/** Mini Donut Chart untuk satu metrik (CPU/Memory/Storage) */
+const MiniGauge = ({ label, percent, used, total, color, isDark }: {
+  label: string; percent: number; used: string; total: string; color: string; isDark: boolean;
+}) => {
+  const data = [
+    { name: 'used', value: percent },
+    { name: 'free', value: 100 - percent },
+  ];
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: 52, height: 52 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data} cx="50%" cy="50%"
+              innerRadius={15} outerRadius={22}
+              startAngle={90} endAngle={-270}
+              dataKey="value" strokeWidth={0}
+            >
+              <Cell fill={color} />
+              <Cell fill={isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'} />
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-[9px] font-bold text-white">{percent}%</span>
+        </div>
+      </div>
+      <p className="text-[8px] font-semibold text-white mt-0.5">{label}</p>
+      <p className={`text-[7px] ${isDark ? 'text-slate-500' : 'text-blue-200'}`}>{used}/{total}</p>
+    </div>
+  );
+};
 
 const Kominfo: React.FC = () => {
   const [mapSrc, setMapSrc] = useState(DEFAULT_MAP_URL);
@@ -18,6 +56,29 @@ const Kominfo: React.FC = () => {
   const [trafficData, setTrafficData] = useState<ReturnType<typeof transformTrafficData> | null>(null);
   const [trafficLoading, setTrafficLoading] = useState(true);
 
+  // === CCTV DATA STATE ===
+  const [cctvData, setCctvData] = useState<CctvMain | null>(null);
+
+  // === SERVER MONITORING STATE ===
+  const [serverData, setServerData] = useState<ServerData[] | null>(null);
+  const [serverLoading, setServerLoading] = useState(true);
+
+  // === SERVER MONITORING 2 STATE ===
+  const [serverData2, setServerData2] = useState<ServerData[] | null>(null);
+  const [serverLoading2, setServerLoading2] = useState(true);
+
+  useEffect(() => {
+    // Load CCTV data dari backend
+    const loadCctv = async () => {
+      const data = await fetchCctvData();
+      if (data) {
+        setCctvData(data.main);
+      }
+    };
+    loadCctv();
+  }, []);
+
+  // Auto-refresh traffic setiap 1 detik
   useEffect(() => {
     let isMounted = true;
 
@@ -30,9 +91,49 @@ const Kominfo: React.FC = () => {
     };
 
     loadTraffic();
-
-    // Auto-refresh setiap 1 detik
     const interval = setInterval(loadTraffic, 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Auto-refresh server monitoring setiap 5 detik
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadServers = async () => {
+      const data = await fetchServerData();
+      if (data && isMounted) {
+        setServerData(data);
+      }
+      if (isMounted) setServerLoading(false);
+    };
+
+    loadServers();
+    const interval = setInterval(loadServers, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Auto-refresh server monitoring 2 setiap 5 detik
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadServers2 = async () => {
+      const data = await fetchServerData2();
+      if (data && isMounted) {
+        setServerData2(data);
+      }
+      if (isMounted) setServerLoading2(false);
+    };
+
+    loadServers2();
+    const interval = setInterval(loadServers2, 5000);
 
     return () => {
       isMounted = false;
@@ -76,7 +177,7 @@ const Kominfo: React.FC = () => {
         {/* === MAIN LAYOUT === */}
         <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 z-10 lg:flex-1" style={{ minHeight: 0 }}>
 
-          {/* === DATA ANALYTICS === */}
+          {/* === SERVER MONITORING === */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -84,43 +185,193 @@ const Kominfo: React.FC = () => {
           >
             <h3 className={`font-bold text-sm mb-3 px-1 flex items-center gap-2 transition-colors duration-500 ${headingStyle}`}>
               <span className={`w-2 h-2 rounded-full animate-pulse ${isDark ? 'bg-cyan-400' : 'bg-blue-500'}`}></span>
-              Data Analytics ({dataKominfoCharts.length} Metrics)
+              Server Monitoring {serverData ? `(${serverData.length})` : ''}
             </h3>
 
             <div className="flex-1 overflow-y-auto no-scrollbar max-h-[300px] lg:max-h-none">
-              <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-3 gap-1.5">
-                {dataKominfoCharts.map((chart, idx) => (
-                  <div
-                    key={idx}
-                    className={`rounded-lg p-2 border transition-all group cursor-pointer ${isDark
-                      ? 'bg-slate-800/50 border-white/10 hover:border-cyan-400/30'
-                      : 'bg-white border-slate-200 hover:border-blue-400/50 shadow-sm'
-                      }`}
-                    title={chart.title}
-                  >
-                    <p className={`text-[8px] sm:text-[9px] font-semibold text-center mb-1 truncate transition-colors ${isDark ? 'text-slate-300 group-hover:text-cyan-300' : 'text-slate-700 group-hover:text-blue-600'}`}>
-                      {chart.title}
-                    </p>
-                    <ResponsiveContainer width="100%" height={55}>
-                      <PieChart>
-                        <Pie data={chart.data} cx="50%" cy="50%" innerRadius={10} outerRadius={18} paddingAngle={1.5} dataKey="value">
-                          {chart.data.map((entry, i) => (<Cell key={`cell-${i}`} fill={entry.color} />))}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-
-                    {/* Mini Legend */}
-                    <div className={`text-[7px] mt-1 space-y-0.5 hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                      {chart.data.slice(0, 2).map((item, i) => (
-                        <div key={i} className="flex items-center gap-0.5 truncate">
-                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }}></div>
-                          <span className="truncate">{item.name}</span>
-                        </div>
-                      ))}
-                    </div>
+              {serverLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-blue-200'}`}>Memuat server...</p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : !serverData || serverData.length === 0 ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <svg className="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                    </svg>
+                    <p className={`text-[11px] font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-blue-200'}`}>
+                      Belum ada data server
+                    </p>
+                    <p className={`text-[9px] ${isDark ? 'text-slate-600' : 'text-blue-300/60'}`}>
+                      Isi SERVER_API_URL di backend/.env
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {serverData.map((server, idx) => (
+                    <div
+                      key={idx}
+                      className={`rounded-xl p-2.5 border transition-all ${isDark
+                        ? 'bg-slate-800/50 border-white/10 hover:border-cyan-400/30'
+                        : 'bg-white/10 border-white/15 hover:border-cyan-200/50'
+                        }`}
+                    >
+                      {/* Server Name + Status */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-[10px] sm:text-[11px] font-bold ${headingStyle}`}>
+                          🖥️ {server.label}
+                        </span>
+                        {server.error ? (
+                          <span className="text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
+                            Offline
+                          </span>
+                        ) : (
+                          <span className="text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                            Online
+                          </span>
+                        )}
+                      </div>
+
+                      {server.error ? (
+                        /* Server Error State */
+                        <div className={`rounded-lg p-2 border text-center ${isDark ? 'bg-red-900/10 border-red-500/20' : 'bg-red-500/10 border-red-400/20'}`}>
+                          <p className="text-[8px] sm:text-[9px] text-red-400">⚠️ {server.error}</p>
+                        </div>
+                      ) : server.resources ? (
+                        /* Server Resource Gauges */
+                        <div className="flex items-center justify-around">
+                          <MiniGauge
+                            label="CPU"
+                            percent={calcPercent(server.resources.cpu.usedMHz, server.resources.cpu.capacityMHz)}
+                            used={formatMHz(server.resources.cpu.usedMHz)}
+                            total={formatMHz(server.resources.cpu.capacityMHz)}
+                            color={getUsageColor(calcPercent(server.resources.cpu.usedMHz, server.resources.cpu.capacityMHz))}
+                            isDark={isDark}
+                          />
+                          <MiniGauge
+                            label="Memory"
+                            percent={calcPercent(server.resources.memory.usedGB, server.resources.memory.capacityGB)}
+                            used={formatGB(server.resources.memory.usedGB)}
+                            total={formatGB(server.resources.memory.capacityGB)}
+                            color={getUsageColor(calcPercent(server.resources.memory.usedGB, server.resources.memory.capacityGB))}
+                            isDark={isDark}
+                          />
+                          <MiniGauge
+                            label="Storage"
+                            percent={calcPercent(server.resources.storage.usedGB, server.resources.storage.capacityGB)}
+                            used={formatGB(server.resources.storage.usedGB)}
+                            total={formatGB(server.resources.storage.capacityGB)}
+                            color={getUsageColor(calcPercent(server.resources.storage.usedGB, server.resources.storage.capacityGB))}
+                            isDark={isDark}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* === SERVER MONITORING 2 === */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15 }}
+            className={`w-full lg:w-80 border rounded-2xl p-3 shadow-xl transition-all flex flex-col overflow-hidden shrink-0 ${cardStyle}`}
+          >
+            <h3 className={`font-bold text-sm mb-3 px-1 flex items-center gap-2 transition-colors duration-500 ${headingStyle}`}>
+              <span className={`w-2 h-2 rounded-full animate-pulse ${isDark ? 'bg-purple-400' : 'bg-purple-500'}`}></span>
+              Server Monitoring 2 {serverData2 ? `(${serverData2.length})` : ''}
+            </h3>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar max-h-[300px] lg:max-h-none">
+              {serverLoading2 ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-blue-200'}`}>Memuat server...</p>
+                  </div>
+                </div>
+              ) : !serverData2 || serverData2.length === 0 ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <svg className="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                    </svg>
+                    <p className={`text-[11px] font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-blue-200'}`}>
+                      Belum ada data server
+                    </p>
+                    <p className={`text-[9px] ${isDark ? 'text-slate-600' : 'text-blue-300/60'}`}>
+                      Isi SERVER_API_URL_2 di backend/.env
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {serverData2.map((server, idx) => (
+                    <div
+                      key={idx}
+                      className={`rounded-xl p-2.5 border transition-all ${isDark
+                        ? 'bg-slate-800/50 border-white/10 hover:border-purple-400/30'
+                        : 'bg-white/10 border-white/15 hover:border-purple-200/50'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-[10px] sm:text-[11px] font-bold ${headingStyle}`}>
+                          🖥️ {server.label}
+                        </span>
+                        {server.error ? (
+                          <span className="text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
+                            Offline
+                          </span>
+                        ) : (
+                          <span className="text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                            Online
+                          </span>
+                        )}
+                      </div>
+
+                      {server.error ? (
+                        <div className={`rounded-lg p-2 border text-center ${isDark ? 'bg-red-900/10 border-red-500/20' : 'bg-red-500/10 border-red-400/20'}`}>
+                          <p className="text-[8px] sm:text-[9px] text-red-400">⚠️ {server.error}</p>
+                        </div>
+                      ) : server.resources ? (
+                        <div className="flex items-center justify-around">
+                          <MiniGauge
+                            label="CPU"
+                            percent={calcPercent(server.resources.cpu.usedMHz, server.resources.cpu.capacityMHz)}
+                            used={formatMHz(server.resources.cpu.usedMHz)}
+                            total={formatMHz(server.resources.cpu.capacityMHz)}
+                            color={getUsageColor(calcPercent(server.resources.cpu.usedMHz, server.resources.cpu.capacityMHz))}
+                            isDark={isDark}
+                          />
+                          <MiniGauge
+                            label="Memory"
+                            percent={calcPercent(server.resources.memory.usedGB, server.resources.memory.capacityGB)}
+                            used={formatGB(server.resources.memory.usedGB)}
+                            total={formatGB(server.resources.memory.capacityGB)}
+                            color={getUsageColor(calcPercent(server.resources.memory.usedGB, server.resources.memory.capacityGB))}
+                            isDark={isDark}
+                          />
+                          <MiniGauge
+                            label="Storage"
+                            percent={calcPercent(server.resources.storage.usedGB, server.resources.storage.capacityGB)}
+                            used={formatGB(server.resources.storage.usedGB)}
+                            total={formatGB(server.resources.storage.capacityGB)}
+                            color={getUsageColor(calcPercent(server.resources.storage.usedGB, server.resources.storage.capacityGB))}
+                            isDark={isDark}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -145,7 +396,7 @@ const Kominfo: React.FC = () => {
                   }`}>
                   <div>
                     <h3 className={`font-bold text-xs sm:text-sm ${headingStyle}`}>CCTV Live Feed</h3>
-                    <p className={`text-[10px] sm:text-xs ${subTextStyle}`}>{cctv.location}</p>
+                    <p className={`text-[10px] sm:text-xs ${subTextStyle}`}>{cctvData?.location || 'Memuat...'}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <Link
@@ -156,15 +407,15 @@ const Kominfo: React.FC = () => {
                     </Link>
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-[10px] sm:text-xs font-bold text-red-400">{cctv.status}</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-red-400">{cctvData?.status || 'Live'}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex-1 bg-black/60 overflow-hidden">
-                  {cctv.streamUrl ? (
+                  {cctvData?.streamUrl ? (
                     <iframe
                       title="CCTV Live Stream"
-                      src={`${cctv.streamUrl}${cctv.streamUrl.includes('?') ? '&' : '?'}autoplay=1&muted=1`}
+                      src={`${cctvData.streamUrl}${cctvData.streamUrl.includes('?') ? '&' : '?'}autoplay=1&muted=1`}
                       width="100%" height="100%" className="border-0 w-full h-full"
                       allowFullScreen loading="eager"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay *"

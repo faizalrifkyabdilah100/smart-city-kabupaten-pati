@@ -1,11 +1,10 @@
 // =========================================
 // TRAFFIC API SERVICE
 // =========================================
-// Fungsi untuk mengambil data trafik internet dari API
-// Isi URL dan API_KEY di bawah ini sesuai kebutuhan
+// Fungsi untuk mengambil data trafik internet dari backend.
+// Backend yang jadi perantara ke API eksternal (IP tersembunyi).
 
-const TRAFFIC_API_URL = '/api/traffic'; // Proxy via Vite → http://103.110.43.236:5005/traffic
-const TRAFFIC_API_KEY = '';
+import { API_BASE_URL } from '../config/api';
 
 export interface TrafficISP {
     name: string;
@@ -50,25 +49,12 @@ export function formatBitrate(bytes: number): string {
 }
 
 /**
- * Ambil data trafik internet dari API
+ * Ambil data trafik internet dari BACKEND (bukan langsung ke API eksternal)
+ * Backend yang jadi proxy, IP & API Key tersembunyi di server.
  */
 export async function fetchTrafficData(): Promise<TrafficData | null> {
-    if (!TRAFFIC_API_URL) {
-        console.warn('Traffic API URL belum diisi! Buka file src/services/trafficApi.ts');
-        return null;
-    }
-
     try {
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
-
-        // Tambahkan API Key jika ada
-        if (TRAFFIC_API_KEY) {
-            headers['Authorization'] = `Bearer ${TRAFFIC_API_KEY}`;
-        }
-
-        const response = await fetch(TRAFFIC_API_URL, { headers });
+        const response = await fetch(`${API_BASE_URL}/traffic`);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
