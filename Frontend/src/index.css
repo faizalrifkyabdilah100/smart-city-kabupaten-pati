@@ -7,13 +7,24 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  transition: background-color 0.5s ease;
+}
+
+/* Dark mode background - sama seperti original */
+html.dark body {
   background-color: #1a2a4e;
+}
+
+/* Light mode background - match gradient start */
+html.light body {
+  background-color: #1e40af;
 }
 
 /* Utility: sembunyikan scrollbar tapi tetap bisa scroll */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

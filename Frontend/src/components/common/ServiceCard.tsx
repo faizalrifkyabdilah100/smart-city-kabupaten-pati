@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Service } from '../../types/index';
+import { useTheme } from '../../hooks/useTheme';
 
 interface Props {
   service: Service;
@@ -7,8 +8,9 @@ interface Props {
 }
 
 const ServiceCard: React.FC<Props> = ({ service, show }) => {
+  const { isDark } = useTheme();
+
   // Responsive radius: smaller on mobile, larger on desktop
-  // We use window.innerWidth to determine the radius
   const getRadius = () => {
     if (typeof window === 'undefined') return 340;
     const w = window.innerWidth;
@@ -34,7 +36,7 @@ const ServiceCard: React.FC<Props> = ({ service, show }) => {
       <div className="relative flex flex-col items-center justify-center cursor-pointer group transform transition-all duration-300 hover:scale-110 hover:-translate-y-2 active:scale-95">
 
         {/* === 1. EFEK GLOW === */}
-        <div className="absolute inset-0 bg-white/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-100"></div>
+        <div className={`absolute inset-0 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-100 ${isDark ? 'bg-white/30' : 'bg-blue-400/30'}`}></div>
 
         {/* === 2. GAMBAR IKON (RESPONSIVE) === */}
         <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-44 lg:h-44 mb-1 sm:mb-2 transition-all duration-300 drop-shadow-2xl">
@@ -47,7 +49,7 @@ const ServiceCard: React.FC<Props> = ({ service, show }) => {
 
         {/* === 3. TEKS JUDUL (RESPONSIVE) === */}
         <div className="text-center mt-[-8px] sm:mt-[-12px] lg:mt-[-15px] transition-all duration-300 relative z-10 px-0 flex justify-center">
-          <p className="max-w-[100px] sm:max-w-[130px] lg:max-w-[160px] mx-auto text-[10px] sm:text-xs md:text-sm lg:text-base font-black text-white leading-tight uppercase tracking-wide drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] group-hover:text-cyan-300 transition-colors">
+          <p className="max-w-[100px] sm:max-w-[130px] lg:max-w-[160px] mx-auto text-[10px] sm:text-xs md:text-sm lg:text-base font-black leading-tight uppercase tracking-wide text-white drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] group-hover:text-cyan-300 transition-colors">
             {service.title}
           </p>
         </div>

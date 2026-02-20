@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../../utils/auth';
+import { useTheme } from '../../hooks/useTheme';
 
 interface Props {
   type: string | null;
@@ -9,6 +10,7 @@ interface Props {
 
 const PopupView: React.FC<Props> = ({ type, onClose }) => {
   const navigate = useNavigate();
+  const { isDark } = useTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -47,13 +49,13 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
         </button>
 
         {/* Modal Login */}
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-[400px] flex flex-col items-center relative animate-scale-up border-t-4 border-yellow-400">
+        <div className={`rounded-3xl shadow-2xl p-8 w-[400px] flex flex-col items-center relative animate-scale-up border-t-4 border-yellow-400 ${isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-800'}`}>
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">Login Smart City</h2>
-          <p className="text-sm text-gray-500 mb-6">Akses Layanan Pemerintahan Terpadu</p>
+          <h2 className={`text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>Login Smart City</h2>
+          <p className={`text-sm mb-6 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Akses Layanan Pemerintahan Terpadu</p>
 
           {errorMsg && (
-            <div className="w-full bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4 border border-red-300">
+            <div className={`w-full text-sm p-3 rounded-lg mb-4 border ${isDark ? 'bg-red-500/20 text-red-300 border-red-500/30' : 'bg-red-100 text-red-700 border-red-300'}`}>
               {errorMsg}
             </div>
           )}
@@ -67,7 +69,7 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-800'}`}
               />
               <input
                 type="password"
@@ -75,7 +77,7 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-slate-800 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-800'}`}
               />
             </div>
 
@@ -154,7 +156,7 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
 
   // === 3. TAMPILAN MENU GRID (DINAMIS) ===
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className={`absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-sm animate-fade-in ${isDark ? 'bg-black/60' : 'bg-black/40'}`}>
 
       {/* Tombol Close Besar */}
       <button onClick={onClose} className="absolute top-8 right-8 text-white hover:rotate-90 transition-transform duration-300 z-50">
@@ -165,7 +167,7 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
 
       {/* Header Popup */}
       <div className="flex flex-col items-center mb-10 animate-slide-down">
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-4 shadow-2xl w-24 h-24 flex items-center justify-center mb-4 text-5xl">
+        <div className={`backdrop-blur-md border rounded-full p-4 shadow-2xl w-24 h-24 flex items-center justify-center mb-4 text-5xl ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/60 border-white/40'}`}>
           {iconHeader}
         </div>
         <h1 className="text-white text-3xl font-bold tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] border-b-4 border-yellow-400 pb-2">
@@ -178,10 +180,13 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
         {buttons.map((btn, idx) => (
           <div
             key={idx}
-            className="group bg-white/90 hover:bg-white rounded-2xl p-4 w-40 h-40 md:w-48 md:h-48 flex flex-col items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition-all duration-300 border-b-4 border-transparent hover:border-blue-500"
+            className={`group rounded-2xl p-4 w-40 h-40 md:w-48 md:h-48 flex flex-col items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition-all duration-300 border-b-4 border-transparent hover:border-blue-500 ${isDark
+              ? 'bg-white/90 hover:bg-white'
+              : 'bg-white hover:bg-white'
+              }`}
           >
             {/* Icon Tombol */}
-            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-3 text-4xl group-hover:bg-blue-100 transition-colors shadow-inner">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 text-4xl transition-colors shadow-inner ${isDark ? 'bg-blue-50 group-hover:bg-blue-100' : 'bg-blue-50 group-hover:bg-blue-100'}`}>
               {btn.icon}
             </div>
 

@@ -1,6 +1,6 @@
-// 1. UBAH DARI MemoryRouter KE BrowserRouter
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { ThemeProvider, useTheme } from './hooks/useTheme';
 
 import GlobalBackground from './components/layout/GlobalBackground';
 import PageTransition from './components/common/PageTransition';
@@ -8,11 +8,12 @@ import PageTransition from './components/common/PageTransition';
 // === IMPORT HALAMAN ===
 import Home from './pages/Home';
 import Login from './pages/Login';
-import ManajemenUser from './pages/ManajemenUser'; // Pastikan ini sudah di-import
+import ManajemenUser from './pages/ManajemenUser';
 import LingkunganHidup from './pages/LingkunganHidup';
 import Infrastruktur from './pages/Infrastruktur';
 import Kesehatan from './pages/Kesehatan';
 import Kominfo from './pages/Kominfo';
+import CCTVMonitor from './pages/CCTVMonitor';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 const AnimatedRoutes = () => {
@@ -45,23 +46,33 @@ const AnimatedRoutes = () => {
         <Route path="/infrastruktur" element={<PageTransition><Infrastruktur /></PageTransition>} />
         <Route path="/kesehatan" element={<PageTransition><Kesehatan /></PageTransition>} />
         <Route path="/kominfo" element={<PageTransition><Kominfo /></PageTransition>} />
+        <Route path="/cctv-monitor" element={<PageTransition><CCTVMonitor /></PageTransition>} />
 
       </Routes>
     </AnimatePresence>
   );
 };
 
-function App() {
+const AppContent = () => {
+  const { isDark } = useTheme();
+
   return (
-    <div className="relative w-screen min-h-screen overflow-x-hidden bg-slate-800 text-white">
+    <div className={`relative w-screen min-h-screen overflow-x-hidden transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-800'}`}>
       <GlobalBackground />
 
-      {/* 2. Router sekarang pakai BrowserRouter (Web Standar) */}
       <Router>
         <AnimatedRoutes />
       </Router>
 
     </div>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
