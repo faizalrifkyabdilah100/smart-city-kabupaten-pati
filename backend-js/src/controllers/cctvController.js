@@ -1,98 +1,95 @@
 /**
  * CCTV Controller
  * =================
- * Menyediakan daftar URL CCTV dari backend.
- * URL CCTV disimpan di .env, bukan di frontend.
- * 
- * Backend HANYA mengirim URL-nya saja,
- * browser yang langsung konek ke stream CCTV (iframe).
+ * Menyediakan daftar URL CCTV.
  */
 
 const cctvController = {
-    /**
-     * GET DAFTAR CCTV
-     * GET /api/cctv
-     * 
-     * Mengembalikan daftar CCTV beserta stream URL-nya.
-     * URL di-generate dari CCTV_BASE_URL + CCTV_STREAM_ID di .env
-     */
     getList: async (req, res) => {
         try {
-            const baseUrl = process.env.CCTV_BASE_URL;
-            const streamId = process.env.CCTV_STREAM_ID;
+            // ==================================================================================
+            // 🛑 GANTI URL CCTV DI BAWAH INI (Sesuai ID masing-masing)
+            // ==================================================================================
 
-            if (!baseUrl || !streamId) {
-                return res.status(500).json({
-                    status: 500,
-                    messages: { error: 'CCTV_BASE_URL atau CCTV_STREAM_ID belum dikonfigurasi di .env' },
-                });
-            }
+            // Link Default (Untuk sementara, nanti ditimpa per item)
+            // const templateLink = 'http://103.110.43.72:8080/5286aec5-e07e-49aa-89fe-fdad49c8e1ca.html?autoplay=true&mute=true';
 
-            const streamUrl = `${baseUrl}/${streamId}.html`;
+            const cctvUrls = {
+                1: 'http://103.110.43.72:8080/5286aec5-e07e-49aa-89fe-fdad49c8e1ca.html?autoplay=true&mute=true', // Link CCTV 1 (Jl. Diponegoro)
+                2: 'http://103.110.43.72:8080/4fd477ce-4f96-4766-be8d-9b2321165633.html?autoplay=true&mute=true', // Link CCTV 2 (Bundaran Timor)
+                3: 'http://103.110.43.72:8080/6bd6a6f1-8609-44eb-a30b-54c4e1f29357.html?autoplay=true&mute=true', // Link CCTV 3 (Alun-Alun)
+                4: 'http://103.110.43.72:8080/7fd9bcf9-26ed-44bf-803f-878d1025f1c3.html?autoplay=true&mute=true', // Link CCTV 4 (Jl. Sudirman)
+                5: 'http://103.110.43.72:8080/470da99b-d80a-489e-adc0-1c0f1d86837a.html?autoplay=true&mute=true', // Link CCTV 5 (Terminal Bus)
+                6: 'http://103.110.43.72:8080/c85909da-cdcb-44ff-9987-1463da88f9b2.html?autoplay=true&mute=true', // Link CCTV 6 (Pasar Pati)
+                7: 'http://103.110.43.72:8080/dd2e2b25-ca72-4cb3-953c-6e3dd8ce2d1d.html?autoplay=true&mute=true', // Link CCTV 7 (Jl. Ahmad Yani)
+                8: 'http://103.110.43.72:8080/47b3777c-5581-4557-b82c-b13e71ec4d0a.html?autoplay=true&mute=true', // Link CCTV 8 (RS Umum Pati)
+                9: 'http://103.110.43.72:8080/32bc3695-3a64-41c7-a13b-59c5045f1d09.html?autoplay=true&mute=true', // Link CCTV 9 (Kantor Bupati)
+            };
 
-            // Daftar CCTV — nanti bisa dipindah ke database kalau sudah banyak
+            // ==================================================================================
+
             const cctvList = [
                 {
                     id: 1,
-                    name: 'CCTV 1 — Jl. Diponegoro',
-                    location: 'Perempatan Diponegoro, Pati',
-                    streamUrl,
+                    name: 'CCTV 1 — Front Office',
+                    location: 'Pelayanan Lantai 1',
+                    streamUrl: cctvUrls[1],
                 },
                 {
                     id: 2,
-                    name: 'CCTV 2 — Bundaran Timor',
-                    location: 'Bundaran Timor, Pati',
-                    streamUrl,
+                    name: 'CCTV 2 — Lobby Tangga',
+                    location: 'Area Lobby & Tangga Utama',
+                    streamUrl: cctvUrls[2],
                 },
                 {
                     id: 3,
-                    name: 'CCTV 3 — Alun-Alun Pati',
-                    location: 'Alun-Alun Pati',
-                    streamUrl,
+                    name: 'CCTV 3 — Lorong Lantai 2',
+                    location: 'Akses Ruang Kerja Lt 2',
+                    streamUrl: cctvUrls[3],
                 },
                 {
                     id: 4,
-                    name: 'CCTV 4 — Jl. Sudirman',
-                    location: 'Jl. Jenderal Sudirman, Pati',
-                    streamUrl,
+                    name: 'CCTV 4 — Ruang Server/Studio',
+                    location: 'Area Teknis & Studio',
+                    streamUrl: cctvUrls[4],
                 },
                 {
                     id: 5,
-                    name: 'CCTV 5 — Terminal Bus',
-                    location: 'Terminal Bus Pati',
-                    streamUrl,
+                    name: 'CCTV 5 — Area Parkir',
+                    location: 'Halaman Parkir Belakang',
+                    streamUrl: cctvUrls[5],
                 },
                 {
                     id: 6,
-                    name: 'CCTV 6 — Pasar Pati',
-                    location: 'Pasar Tradisional Pati',
-                    streamUrl,
+                    name: 'CCTV 6 — Pintu Belakang',
+                    location: 'Akses Keluar Belakang',
+                    streamUrl: cctvUrls[6],
                 },
                 {
                     id: 7,
-                    name: 'CCTV 7 — Jl. Ahmad Yani',
-                    location: 'Jl. Ahmad Yani, Pati',
-                    streamUrl,
+                    name: 'CCTV 7 — Lobi Depan',
+                    location: 'Lobi Depan',
+                    streamUrl: cctvUrls[7],
                 },
                 {
                     id: 8,
-                    name: 'CCTV 8 — RS Umum Pati',
-                    location: 'Jl. Dr. Sutomo, Pati',
-                    streamUrl,
+                    name: 'CCTV 8 — Ruang Meeting',
+                    location: 'Ruang Meeting',
+                    streamUrl: cctvUrls[8],
                 },
                 {
                     id: 9,
-                    name: 'CCTV 9 — Kantor Bupati',
-                    location: 'Jl. Diponegoro No.1, Pati',
-                    streamUrl,
+                    name: 'CCTV 9 — Pintu Masuk Lantai 2',
+                    location: 'Pintu Masuk Lantai 2',
+                    streamUrl: cctvUrls[9],
                 },
             ];
 
-            // Juga kirim data CCTV utama (untuk halaman Kominfo)
+            // CCTV UTAMA (Dashboard) - Misal default ambil CCTV 1
             const mainCctv = {
                 location: 'Jalan Diponegoro, Pati',
                 status: 'Live',
-                streamUrl,
+                streamUrl: cctvUrls[1],
             };
 
             return res.status(200).json({
