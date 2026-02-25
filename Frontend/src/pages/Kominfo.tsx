@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import { motion } from 'framer-motion';
-import { mapLocations } from '../data/dashboardData';
 import { formatTanggal } from '../utils/formatTanggal';
 import { useTheme } from '../hooks/useTheme';
 import { fetchTrafficData, transformTrafficData } from '../services/trafficApi';
@@ -14,15 +13,13 @@ import { ServerPanel } from '../components/kominfo/ServerPanel';
 import { ServerGauges } from '../components/kominfo/ServerGauges';
 import { TrafficCard } from '../components/kominfo/TrafficCard';
 import { ModalOverlay } from '../components/common/ModalOverlay';
-
-const DEFAULT_MAP_URL = 'https://www.google.com/maps?q=-6.7578,111.1245&z=13&output=embed';
-
-/** Mini Donut Chart untuk satu metrik (CPU/Memory/Storage) */
-// MiniGauge dipindahkan ke components/kominfo/ServerGauges.tsx
-// ServerPanel dipindahkan ke components/kominfo/ServerPanel.tsx
+import { MenaraMap } from '../components/kominfo/MenaraMap';
+import { fetchMenaraData } from '../services/menaraApi';
+import type { MenaraData } from '../services/menaraApi';
+import MenaraSidebar from '../components/kominfo/MenaraSidebar';
+import CctvPlayer from '../components/kominfo/CctvPlayer';
 
 const Kominfo: React.FC = () => {
-  const [mapSrc, setMapSrc] = useState(DEFAULT_MAP_URL);
   const { isDark } = useTheme();
 
   // === EXPAND SERVER DETAIL STATE ===
@@ -46,6 +43,12 @@ const Kominfo: React.FC = () => {
   const [serverData2, setServerData2] = useState<ServerData[] | null>(null);
   const [serverLoading2, setServerLoading2] = useState(true);
 
+  // === MENARA DATA STATE ===
+  const [menaraData, setMenaraData] = useState<MenaraData[]>([]);
+  const [menaraLoading, setMenaraLoading] = useState(true);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([-6.7578, 111.1245]);
+  const [mapZoom, setMapZoom] = useState(13);
+
   useEffect(() => {
     // Load CCTV data dari backend
     const loadCctv = async () => {
@@ -57,41 +60,32 @@ const Kominfo: React.FC = () => {
     loadCctv();
   }, []);
 
-  // Auto-refresh traffic setiap 1 detik
+  // Auto-refresh traffic & server monitoring setiap 1 detik (Consolidated)
   useEffect(() => {
     let isMounted = true;
 
-    const loadTraffic = async () => {
-      const raw = await fetchTrafficData();
-      if (raw && isMounted) {
-        setTrafficData(transformTrafficData(raw));
+    const loadRealtimeData = async () => {
+      // Jalankan fetch secara paralel untuk efisiensi
+      const [rawTraffic, rawServers] = await Promise.all([
+        fetchTrafficData(),
+        fetchServerData()
+      ]);
+
+      if (!isMounted) return;
+
+      if (rawTraffic) {
+        setTrafficData(transformTrafficData(rawTraffic));
       }
-      if (isMounted) setTrafficLoading(false);
-    };
+      setTrafficLoading(false);
 
-    loadTraffic();
-    const interval = setInterval(loadTraffic, 1000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Auto-refresh server monitoring setiap 1 detik
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadServers = async () => {
-      const data = await fetchServerData();
-      if (data && isMounted) {
-        setServerData(data);
+      if (rawServers) {
+        setServerData(rawServers);
       }
-      if (isMounted) setServerLoading(false);
+      setServerLoading(false);
     };
 
-    loadServers();
-    const interval = setInterval(loadServers, 1000);
+    loadRealtimeData();
+    const interval = setInterval(loadRealtimeData, 2000); // 2 detik agar lebih stabil & hemat RAM
 
     return () => {
       isMounted = false;
@@ -112,7 +106,7 @@ const Kominfo: React.FC = () => {
     };
 
     loadServers2();
-    const interval = setInterval(loadServers2, 5000);
+    const interval = setInterval(loadServers2, 500000); // Jarang refresh untuk server 2
 
     return () => {
       isMounted = false;
@@ -120,8 +114,19 @@ const Kominfo: React.FC = () => {
     };
   }, []);
 
+  // Fetch Menara Data
+  useEffect(() => {
+    const loadMenara = async () => {
+      const data = await fetchMenaraData();
+      setMenaraData(data);
+      setMenaraLoading(false);
+    };
+    loadMenara();
+  }, []);
+
   const handleLocationClick = useCallback((lat: number, lng: number) => {
-    setMapSrc(`https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`);
+    setMapCenter([lat, lng]);
+    setMapZoom(17);
   }, []);
 
   // === STYLE HELPERS ===
@@ -184,7 +189,7 @@ const Kominfo: React.FC = () => {
           <div className="flex-1 flex flex-col gap-3 sm:gap-4 min-w-0">
 
             {/* === ROW ATAS: CCTV + INTERNET TRAFFIC === */}
-            <div className="flex flex-col md:flex-row gap-3 sm:gap-4 md:h-[340px]">
+            <div className="flex flex-col md:flex-row gap-3 sm:gap-4 md:h-[350px]">
 
               {/* CCTV Live Feed */}
               <motion.div
@@ -206,9 +211,12 @@ const Kominfo: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Link
                       to="/cctv-monitor"
-                      className="text-[10px] sm:text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors hover:underline underline-offset-2"
+                      className="backdrop-blur-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 hover:border-cyan-400/50 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium text-cyan-400 hover:text-cyan-300 shadow-lg transition-all duration-300 flex items-center gap-1.5"
                     >
-                      Lihat Semua CCTV →
+                      Lihat Semua CCTV
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </Link>
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
@@ -217,24 +225,7 @@ const Kominfo: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex-1 bg-black/60 overflow-hidden">
-                  {cctvData?.streamUrl ? (
-                    <iframe
-                      title="CCTV Live Stream"
-                      src={`${cctvData.streamUrl}${cctvData.streamUrl.includes('?') ? '&' : '?'}autoplay=1&muted=1`}
-                      width="100%" height="100%" className="border-0 w-full h-full"
-                      allowFullScreen loading="eager"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay *"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-slate-800/20 via-slate-900/50 to-slate-800/20 flex items-center justify-center">
-                      <div className="text-center">
-                        <svg className="w-10 h-10 sm:w-12 sm:h-12 text-slate-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-slate-400 text-xs sm:text-sm">Live Video Stream</p>
-                      </div>
-                    </div>
-                  )}
+                  <CctvPlayer streamUrl={cctvData?.streamUrl} />
                 </div>
               </motion.div>
 
@@ -244,12 +235,12 @@ const Kominfo: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 className={`flex-1 border rounded-2xl p-3 shadow-xl transition-all flex flex-col overflow-hidden min-w-0 ${cardStyle}`}
               >
-                <h3 className={`font-bold text-xs sm:text-sm mb-3 px-1 flex items-center gap-2 ${headingStyle}`}>
+                <h3 className={`font-bold text-xs sm:text-sm mb-2 px-1 flex items-center gap-2 ${headingStyle}`}>
                   <span className="w-2 h-2 rounded-full animate-pulse bg-cyan-400"></span>
                   Internet Traffic
                 </h3>
 
-                <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 sm:space-y-3">
+                <div className="flex-1 overflow-y-auto no-scrollbar space-y-1.5 sm:space-y-2">
                   {(trafficData ? trafficData.isp : [
                     { name: 'Nexa', download: '...', upload: '...', status: 'Online' as const, usage: 0, color: '#ef4444' },
                     { name: 'Astinet', download: '...', upload: '...', status: 'Online' as const, usage: 0, color: '#3b82f6' },
@@ -267,11 +258,11 @@ const Kominfo: React.FC = () => {
               </motion.div>
             </div>
 
-            {/* === ROW BAWAH: MAP + LOKASI PENTING === */}
+            {/* === ROW BAWAH: MAP + DAFTAR MENARA === */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex-1 border rounded-2xl overflow-hidden shadow-xl flex flex-col min-h-[250px] sm:min-h-[300px] ${isDark
+              className={`md:h-[450px] border rounded-2xl overflow-hidden shadow-xl flex flex-col ${isDark
                 ? 'bg-slate-900/40 backdrop-blur-md border-white/20'
                 : 'bg-blue-950/30 backdrop-blur-md border-white/30'
                 }`}
@@ -280,35 +271,43 @@ const Kominfo: React.FC = () => {
                 ? 'bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border-white/10'
                 : 'bg-gradient-to-r from-cyan-900/15 to-blue-900/15 border-white/10'
                 }`}>
-                <h3 className={`font-bold text-xs sm:text-sm ${headingStyle}`}>Peta Interaktif Pati</h3>
+                <h3 className={`font-bold text-xs sm:text-sm ${headingStyle}`}>Map Pemetaan Menara</h3>
               </div>
               <div className="flex-1 flex flex-col sm:flex-row min-h-0">
                 {/* Map */}
-                <div className="flex-1 overflow-hidden min-h-[180px] sm:min-h-0">
-                  <iframe title="Google Map Pati" src={mapSrc} width="100%" height="100%" className="border-0" />
+                <div className="flex-1 overflow-hidden min-h-[180px] sm:min-h-0 relative">
+                  {menaraLoading ? (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-800/20">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-white text-xs">Memuat Peta Menara...</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <MenaraMap
+                      data={menaraData}
+                      center={mapCenter}
+                      zoom={mapZoom}
+                    />
+                  )}
                 </div>
 
-                {/* Sidebar Lokasi Penting */}
+                {/* Sidebar Menara */}
                 <div className={`w-full sm:w-48 lg:w-56 sm:border-l border-t sm:border-t-0 p-2 sm:p-3 overflow-y-auto no-scrollbar shrink-0 ${isDark
-                  ? 'bg-slate-900/60 border-white/10'
-                  : 'bg-white/10 border-white/10'
+                  ? 'bg-slate-950/50 border-white/10'
+                  : 'bg-blue-950/40 border-white/10'
                   }`}>
-                  <h4 className="text-[10px] sm:text-xs font-semibold mb-2 uppercase tracking-wider text-slate-300">Lokasi Penting</h4>
-                  <div className="flex sm:flex-col gap-1.5 overflow-x-auto sm:overflow-x-visible no-scrollbar pb-1 sm:pb-0">
-                    {mapLocations.map(loc => (
-                      <button
-                        key={loc.id}
-                        className={`flex-shrink-0 sm:flex-shrink sm:w-full text-left rounded-lg p-2 flex items-center gap-2 sm:gap-2.5 transition-all border min-w-[140px] sm:min-w-0 bg-white/5 hover:bg-white/15 active:bg-white/20 border-transparent hover:border-cyan-400/30`}
-                        onClick={() => handleLocationClick(loc.lat, loc.lng)}
-                      >
-                        <div className="text-base sm:text-lg leading-none">{loc.icon}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`text-[10px] sm:text-[11px] font-medium truncate ${headingStyle}`}>{loc.name}</div>
-                          <div className={`text-[8px] sm:text-[9px] truncate ${subTextStyle}`}>{loc.address}</div>
-                        </div>
-                      </button>
-                    ))}
+                  <div className="flex justify-between items-center mb-2 px-1">
+                    <h4 className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-300">Daftar Menara</h4>
+                    <span className="text-[9px] text-cyan-400 font-mono">{menaraData.length}</span>
                   </div>
+                  <MenaraSidebar
+                    data={menaraData}
+                    loading={menaraLoading}
+                    headingStyle={headingStyle}
+                    subTextStyle={subTextStyle}
+                    onItemClick={handleLocationClick}
+                  />
                 </div>
               </div>
             </motion.div>

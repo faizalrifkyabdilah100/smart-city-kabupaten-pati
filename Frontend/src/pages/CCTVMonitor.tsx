@@ -37,17 +37,6 @@ const CCTVMonitor: React.FC = () => {
                 {/* === HEADER === */}
                 <div className="w-full py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 animate-slide-down shrink-0 z-20">
                     <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <button
-                                onClick={() => navigate('/kominfo')}
-                                className="flex items-center gap-1.5 text-xs sm:text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                                Kembali
-                            </button>
-                        </div>
                         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight drop-shadow-lg text-white">
                             Monitoring <span className="text-cyan-400">CCTV</span>
                         </h1>
@@ -55,7 +44,16 @@ const CCTVMonitor: React.FC = () => {
                             Pantau seluruh CCTV Kabupaten Pati secara realtime
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <button
+                            onClick={() => navigate('/kominfo')}
+                            className="backdrop-blur-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 hover:border-cyan-400/50 px-3 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs lg:text-sm font-medium text-cyan-400 hover:text-cyan-300 shadow-lg transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Kembali
+                        </button>
                         <div className="flex items-center gap-1.5 sm:gap-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                             <span className="text-[10px] sm:text-xs font-bold text-red-400">LIVE</span>

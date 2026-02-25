@@ -1,8 +1,5 @@
-/**
- * ServerGauges — Render 3 MiniGauge (CPU, Memory, Storage) dari data server
- * Dipakai di ServerPanel (card kecil) dan ServerExpandModal (modal besar)
- */
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { useState, useEffect } from 'react';
+import { PieChart, Pie, Cell } from 'recharts';
 import { calcPercent, formatGB, formatMHz, getUsageColor } from '../../services/serverApi';
 import type { ServerResources } from '../../services/serverApi';
 
@@ -10,6 +7,15 @@ import type { ServerResources } from '../../services/serverApi';
 export const MiniGauge = ({ label, percent, used, total, color, isDark, expanded = false }: {
     label: string; percent: number; used: string; total: string; color: string; isDark: boolean; expanded?: boolean;
 }) => {
+    // Hanya aktifkan animasi saat pertama kali load (sekali saja)
+    const [isAnimationEnabled, setIsAnimationEnabled] = useState(true);
+
+    useEffect(() => {
+        // Matikan animasi setelah 2 detik (estimasi animasi selesai)
+        const timer = setTimeout(() => setIsAnimationEnabled(false), 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
     const data = [
         { name: 'used', value: percent },
         { name: 'free', value: 100 - percent },
@@ -20,19 +26,18 @@ export const MiniGauge = ({ label, percent, used, total, color, isDark, expanded
     return (
         <div className="flex flex-col items-center">
             <div className="relative" style={{ width: size, height: size }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={data} cx="50%" cy="50%"
-                            innerRadius={inner} outerRadius={outer}
-                            startAngle={90} endAngle={-270}
-                            dataKey="value" strokeWidth={0}
-                        >
-                            <Cell fill={color} />
-                            <Cell fill={isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'} />
-                        </Pie>
-                    </PieChart>
-                </ResponsiveContainer>
+                <PieChart width={size} height={size}>
+                    <Pie
+                        data={data} cx="50%" cy="50%"
+                        innerRadius={inner} outerRadius={outer}
+                        startAngle={90} endAngle={-270}
+                        dataKey="value" strokeWidth={0}
+                        isAnimationActive={isAnimationEnabled}
+                    >
+                        <Cell fill={color} />
+                        <Cell fill={isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'} />
+                    </Pie>
+                </PieChart>
                 <div className="absolute inset-0 flex items-center justify-center">
                     <span className={`font-bold text-white ${expanded ? 'text-lg' : 'text-[9px]'}`}>{percent}%</span>
                 </div>
