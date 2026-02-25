@@ -4,8 +4,8 @@ import { calcPercent, formatGB, formatMHz, getUsageColor } from '../../services/
 import type { ServerResources } from '../../services/serverApi';
 
 /** Mini Donut Chart untuk satu metrik */
-export const MiniGauge = ({ label, percent, used, total, color, isDark, expanded = false }: {
-    label: string; percent: number; used: string; total: string; color: string; isDark: boolean; expanded?: boolean;
+export const MiniGauge = ({ label, subLabel, percent, used, total, color, isDark, expanded = false }: {
+    label: string; subLabel?: string; percent: number; used: string; total: string; color: string; isDark: boolean; expanded?: boolean;
 }) => {
     // Hanya aktifkan animasi saat pertama kali load (sekali saja)
     const [isAnimationEnabled, setIsAnimationEnabled] = useState(true);
@@ -42,7 +42,9 @@ export const MiniGauge = ({ label, percent, used, total, color, isDark, expanded
                     <span className={`font-bold text-white ${expanded ? 'text-lg' : 'text-[9px]'}`}>{percent}%</span>
                 </div>
             </div>
-            <p className={`font-semibold text-white ${expanded ? 'text-sm mt-2' : 'text-[8px] mt-0.5'}`}>{label}</p>
+            <p className={`font-semibold text-white truncate max-w-full text-center ${expanded ? 'text-sm mt-2' : 'text-[8px] mt-0.5'}`}>
+                {label} {subLabel && <span className={`font-normal opacity-70 ${expanded ? 'text-[10px]' : 'text-[6px]'}`}>({subLabel})</span>}
+            </p>
             <p className={`${expanded ? 'text-xs mt-0.5' : 'text-[7px]'} ${isDark ? 'text-slate-400' : 'text-blue-200'}`}>{used} / {total}</p>
         </div>
     );
@@ -55,6 +57,7 @@ export const ServerGauges = ({ resources, isDark, expanded = false }: {
     <div className={`flex items-center ${expanded ? 'justify-around gap-4' : 'justify-around'}`}>
         <MiniGauge
             label="CPU"
+            subLabel={resources.cpu.cores ? `${resources.cpu.cores} Cores` : undefined}
             percent={calcPercent(resources.cpu.usedMHz, resources.cpu.capacityMHz)}
             used={formatMHz(resources.cpu.usedMHz)}
             total={formatMHz(resources.cpu.capacityMHz)}

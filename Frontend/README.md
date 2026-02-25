@@ -8,6 +8,11 @@ Aplikasi front-end untuk portal Smart City Kabupaten Pati, dibuat dengan React +
 - **Nama proyek:** smart-city-kabupaten-pati
 - **Tujuan:** Menyajikan informasi dan layanan smart city untuk warga Kabupaten Pati.
 - **Stack:** React, TypeScript, Vite, Tailwind CSS, Recharts, Framer Motion
+- **Fitur Monitoring Baru:**
+  - Monitoring Server Proxmox & VM Linux (Real-time).
+  - Monitoring VM Provider (4 Baris Grafik: Streamer, UsCast, DockPati, DockWeb).
+  - Integrasi CPU Cores display pada grafik monitoring.
+  - Proxy Backend untuk keamanan API eksternal.
 
 ## Struktur proyek (sekilas)
 

@@ -7,7 +7,7 @@ import { useTheme } from '../hooks/useTheme';
 import { fetchTrafficData, transformTrafficData } from '../services/trafficApi';
 import { fetchCctvData } from '../services/cctvApi';
 import type { CctvMain } from '../services/cctvApi';
-import { fetchServerData, fetchServerData2, calcPercent, formatGB, formatMHz, getUsageColor } from '../services/serverApi';
+import { fetchServerData, fetchServerData2, fetchVmServerData, calcPercent, formatGB, formatMHz, getUsageColor } from '../services/serverApi';
 import type { ServerData } from '../services/serverApi';
 import { ServerPanel } from '../components/kominfo/ServerPanel';
 import { ServerGauges } from '../components/kominfo/ServerGauges';
@@ -42,6 +42,10 @@ const Kominfo: React.FC = () => {
   // === SERVER MONITORING 2 STATE ===
   const [serverData2, setServerData2] = useState<ServerData[] | null>(null);
   const [serverLoading2, setServerLoading2] = useState(true);
+
+  // === VM SERVER STATE ===
+  const [vmData, setVmData] = useState<ServerData[] | null>(null);
+  const [vmLoading, setVmLoading] = useState(true);
 
   // === MENARA DATA STATE ===
   const [menaraData, setMenaraData] = useState<MenaraData[]>([]);
@@ -114,6 +118,27 @@ const Kominfo: React.FC = () => {
     };
   }, []);
 
+  // Auto-refresh VM monitoring setiap 10 detik
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadVms = async () => {
+      const data = await fetchVmServerData();
+      if (data && isMounted) {
+        setVmData(data);
+      }
+      if (isMounted) setVmLoading(false);
+    };
+
+    loadVms();
+    const interval = setInterval(loadVms, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   // Fetch Menara Data
   useEffect(() => {
     const loadMenara = async () => {
@@ -158,18 +183,33 @@ const Kominfo: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 z-10 lg:flex-1" style={{ minHeight: 0 }}>
 
           {/* === SERVER MONITORING === */}
-          {/* === SERVER MONITORING 1 (ServerPanel Reusable) === */}
-          <ServerPanel
-            title="Server Monitoring"
-            data={serverData}
-            loading={serverLoading}
-            isDark={isDark}
-            onExpand={(server) => setExpandedServer({ server, source: 'Server Monitoring' })}
-            accentColor={isDark ? 'bg-cyan-400' : 'bg-blue-500'}
-            pulseColor={isDark ? 'bg-cyan-400' : 'bg-blue-500'}
-            hoverBorderColor="hover:border-cyan-400/30"
-            apiHint="SERVER_API_URL"
-          />
+          <div className="flex flex-col gap-3 sm:gap-4 lg:w-80 shrink-0">
+            {/* === SERVER MONITORING 1 (ServerPanel Reusable) === */}
+            <ServerPanel
+              title="Server Monitoring"
+              data={serverData}
+              loading={serverLoading}
+              isDark={isDark}
+              onExpand={(server) => setExpandedServer({ server, source: 'Server Monitoring' })}
+              accentColor={isDark ? 'bg-cyan-400' : 'bg-blue-500'}
+              pulseColor={isDark ? 'bg-cyan-400' : 'bg-blue-500'}
+              hoverBorderColor="hover:border-cyan-400/30"
+              apiHint="SERVER_API_URL"
+            />
+
+            {/* === VM SERVER MONITORING (Filling empty space) === */}
+            <ServerPanel
+              title="Status Server Provider"
+              data={vmData}
+              loading={vmLoading}
+              isDark={isDark}
+              onExpand={(server) => setExpandedServer({ server, source: 'Status Server Provider' })}
+              accentColor={isDark ? 'bg-emerald-400' : 'bg-emerald-500'}
+              pulseColor={isDark ? 'bg-emerald-400' : 'bg-emerald-500'}
+              hoverBorderColor="hover:border-emerald-400/30"
+              apiHint="VM_SERVER_API"
+            />
+          </div>
 
           {/* === SERVER MONITORING 2 === */}
           {/* === SERVER MONITORING 2 (ServerPanel Reusable) === */}

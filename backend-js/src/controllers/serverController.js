@@ -109,6 +109,38 @@ const serverController = {
             });
         }
     },
+    /**
+     * GET DATA VM SERVER MONITORING
+     * GET /api/servers/vm
+     */
+    getVmServers: async (req, res) => {
+        try {
+            const apiUrl = process.env.VM_API_URL;
+
+            if (!apiUrl) {
+                return res.status(500).json({
+                    status: 500,
+                    messages: { error: 'VM_API_URL belum dikonfigurasi di .env' },
+                });
+            }
+
+            const response = await fetch(apiUrl);
+
+            if (!response.ok) {
+                throw new Error(`API VM error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return res.status(200).json(data);
+
+        } catch (error) {
+            console.error('VM Monitoring API error:', error.message);
+            return res.status(502).json({
+                status: 502,
+                messages: { error: 'Gagal mengambil data monitoring VM' },
+            });
+        }
+    },
 };
 
 module.exports = serverController;

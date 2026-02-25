@@ -14,4 +14,7 @@ router.get('/', serverController.getServers);
 // GET /api/servers/2 → Ambil data monitoring dari API eksternal (sumber 2)
 router.get('/2', serverController.getServers2);
 
+// GET /api/servers/vm → Ambil data monitoring VM dari API eksternal
+router.get('/vm', serverController.getVmServers);
+
 module.exports = router;

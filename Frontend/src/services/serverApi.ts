@@ -11,6 +11,7 @@ import { API_BASE_URL } from '../config/api';
 export interface ServerCPU {
     capacityMHz: number;
     usedMHz: number;
+    cores?: number;
 }
 
 export interface ServerMemory {
@@ -113,6 +114,48 @@ export async function fetchServerData2(): Promise<ServerData[] | null> {
         return data;
     } catch (error) {
         console.error('Gagal mengambil data server 2:', error);
+        return null;
+    }
+}
+
+/**
+ * Ambil data monitoring VM dari endpoint eksternal
+ * Endpoint: http://103.110.43.236:5005/vm
+ */
+export async function fetchVmServerData(): Promise<ServerData[] | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/servers/vm`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        const rawData = await response.json();
+
+        // Transform data agar sesuai dengan interface ServerData
+        const transformed: ServerData[] = rawData.map((item: any) => ({
+            label: item.label,
+            resources: {
+                cpu: {
+                    capacityMHz: item.resources.cpu.totalMHz,
+                    usedMHz: item.resources.cpu.usedMHz,
+                    cores: item.resources.cpu.cores
+                },
+                memory: {
+                    capacityGB: item.resources.memory.capacityGB,
+                    usedGB: item.resources.memory.usedGB
+                },
+                storage: {
+                    capacityGB: item.resources.storage.capacityGB,
+                    usedGB: item.resources.storage.usedGB,
+                    freeGB: item.resources.storage.capacityGB - item.resources.storage.usedGB
+                }
+            }
+        }));
+
+        return transformed;
+    } catch (error) {
+        console.error('Gagal mengambil data VM server:', error);
         return null;
     }
 }
