@@ -42,11 +42,56 @@ const AnimatedRoutes = () => {
         />
 
         {/* Rute Dashboard Lainnya */}
-        <Route path="/lingkungan-hidup" element={<PageTransition><LingkunganHidup /></PageTransition>} />
-        <Route path="/infrastruktur" element={<PageTransition><Infrastruktur /></PageTransition>} />
-        <Route path="/kesehatan" element={<PageTransition><Kesehatan /></PageTransition>} />
-        <Route path="/kominfo" element={<PageTransition><Kominfo /></PageTransition>} />
-        <Route path="/cctv-monitor" element={<PageTransition><CCTVMonitor /></PageTransition>} />
+        <Route
+          path="/lingkungan-hidup"
+          element={
+            <PageTransition>
+              <ProtectedRoute>
+                <LingkunganHidup />
+              </ProtectedRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/infrastruktur"
+          element={
+            <PageTransition>
+              <ProtectedRoute>
+                <Infrastruktur />
+              </ProtectedRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/kesehatan"
+          element={
+            <PageTransition>
+              <ProtectedRoute>
+                <Kesehatan />
+              </ProtectedRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/kominfo"
+          element={
+            <PageTransition>
+              <ProtectedRoute>
+                <Kominfo />
+              </ProtectedRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/cctv-monitor"
+          element={
+            <PageTransition>
+              <ProtectedRoute>
+                <CCTVMonitor />
+              </ProtectedRoute>
+            </PageTransition>
+          }
+        />
 
       </Routes>
     </AnimatePresence>

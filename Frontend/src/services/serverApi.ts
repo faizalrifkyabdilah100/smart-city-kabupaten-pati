@@ -4,7 +4,7 @@
 // Fungsi untuk mengambil data monitoring server
 // (CPU, Memory, Storage) dari backend.
 
-import { API_BASE_URL } from '../config/api';
+
 
 // === TIPE DATA ===
 
@@ -79,12 +79,18 @@ export function getUsageColor(percent: number): string {
 // === API CALL ===
 
 /**
- * Ambil data monitoring server dari backend
+ * Ambil data monitoring server dari API eksternal
  * Auto-refresh cocok dengan interval 5 detik
  */
 export async function fetchServerData(): Promise<ServerData[] | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/servers`);
+        const url = import.meta.env.VITE_SERVER_API_URL;
+        if (!url) {
+            console.error('VITE_SERVER_API_URL belum dikonfigurasi di .env');
+            return null;
+        }
+
+        const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
@@ -99,12 +105,17 @@ export async function fetchServerData(): Promise<ServerData[] | null> {
 }
 
 /**
- * Ambil data monitoring server dari sumber kedua
- * Endpoint: /api/servers/2
+ * Ambil data monitoring server dari sumber kedua API eksternal
  */
 export async function fetchServerData2(): Promise<ServerData[] | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/servers/2`);
+        const url = import.meta.env.VITE_SERVER_API_URL_2;
+        if (!url) {
+            console.error('VITE_SERVER_API_URL_2 belum dikonfigurasi di .env');
+            return null;
+        }
+
+        const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
@@ -120,11 +131,16 @@ export async function fetchServerData2(): Promise<ServerData[] | null> {
 
 /**
  * Ambil data monitoring VM dari endpoint eksternal
- * Endpoint: http://103.110.43.236:5005/vm
  */
 export async function fetchVmServerData(): Promise<ServerData[] | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/servers/vm`);
+        const url = import.meta.env.VITE_VM_API_URL;
+        if (!url) {
+            console.error('VITE_VM_API_URL belum dikonfigurasi di .env');
+            return null;
+        }
+
+        const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);

@@ -4,7 +4,7 @@
 // Fungsi untuk mengambil data trafik internet dari backend.
 // Backend yang jadi perantara ke API eksternal (IP tersembunyi).
 
-import { API_BASE_URL } from '../config/api';
+
 
 export interface TrafficISP {
     name: string;
@@ -49,12 +49,17 @@ export function formatBitrate(bytes: number): string {
 }
 
 /**
- * Ambil data trafik internet dari BACKEND (bukan langsung ke API eksternal)
- * Backend yang jadi proxy, IP & API Key tersembunyi di server.
+ * Ambil data trafik internet langsung ke API eksternal
  */
 export async function fetchTrafficData(): Promise<TrafficData | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/traffic`);
+        const url = import.meta.env.VITE_TRAFFIC_API_URL;
+        if (!url) {
+            console.error('VITE_TRAFFIC_API_URL belum dikonfigurasi di .env');
+            return null;
+        }
+
+        const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
