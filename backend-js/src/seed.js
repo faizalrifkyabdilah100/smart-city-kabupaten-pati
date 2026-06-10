@@ -17,9 +17,9 @@ async function seed() {
     console.log('🌱 Memulai seeding database...');
 
     try {
-        // Hash password (sama seperti password_hash('123456', PASSWORD_BCRYPT))
+        // Hash password — GANTI PASSWORD INI DI PRODUCTION!
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('123456', salt);
+        const hashedPassword = await bcrypt.hash('SmartCity@Pati2026!', salt);
 
         const users = [
             {

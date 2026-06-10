@@ -13,7 +13,7 @@ interface Props {
 const Navbar: React.FC<Props> = ({ show, showLogout = true }) => {
   const navigate = useNavigate();
   const user = useAuth();
-  const { isDark: _isDark } = useTheme(); // keep for ThemeToggle context
+  const { isDark: _isDark } = useTheme(); // Required for ThemeToggle context to be in scope
 
   const handleUserIconClick = () => {
     navigate('/manajemen-user');

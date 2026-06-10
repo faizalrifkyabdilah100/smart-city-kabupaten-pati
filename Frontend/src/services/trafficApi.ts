@@ -1,11 +1,10 @@
 // =========================================
 // TRAFFIC API SERVICE
 // =========================================
-// Fungsi untuk mengambil data trafik internet dari backend.
-// Backend yang jadi perantara ke API eksternal (IP tersembunyi).
+// Fungsi untuk mengambil data trafik internet melalui backend proxy.
+// IP internal tersembunyi dari client browser.
 
-
-
+import { API_BASE_URL } from '../config/api';
 export interface TrafficISP {
     name: string;
     rx: number;  // download (bytes)
@@ -49,17 +48,12 @@ export function formatBitrate(bytes: number): string {
 }
 
 /**
- * Ambil data trafik internet langsung ke API eksternal
+ * Ambil data trafik internet melalui backend proxy
+ * (IP internal tersembunyi dari browser)
  */
 export async function fetchTrafficData(): Promise<TrafficData | null> {
     try {
-        const url = import.meta.env.VITE_TRAFFIC_API_URL;
-        if (!url) {
-            console.error('VITE_TRAFFIC_API_URL belum dikonfigurasi di .env');
-            return null;
-        }
-
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/traffic`);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);

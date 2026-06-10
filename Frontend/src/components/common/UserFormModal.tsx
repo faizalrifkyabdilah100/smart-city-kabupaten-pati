@@ -2,22 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type User } from '../../types';
 import { useTheme } from '../../hooks/useTheme';
+import { GlassInput } from './GlassInput';
 
 interface UserFormModalProps {
   isOpen: boolean;
   mode: 'add' | 'edit';
   initialData?: User | null;
   onClose: () => void;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: Omit<User, 'id'>) => Promise<void>;
 }
+
+// Shared input class for <select> elements (mirrors GlassInput compact variant)
+const selectClass =
+  'w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white/10 border-white/20 text-white';
 
 const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData, onClose, onSave }) => {
   const { isDark } = useTheme();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<User, 'id'>>({
     username: '',
     nama: '',
     opd: '',
-    role: 'admin',
+    role: 'admin' as const,
     password: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,7 +39,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
           password: '', // Password kosong saat edit (kecuali mau diganti)
         });
       } else {
-        setFormData({ username: '', nama: '', opd: '', role: 'admin', password: '' });
+        setFormData({ username: '', nama: '', opd: '', role: 'admin' as const, password: '' });
       }
     }
   }, [isOpen, mode, initialData]);
@@ -42,7 +47,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await onSave(formData); // Kirim data ke induk
+    await onSave(formData);
     setIsSubmitting(false);
   };
 
@@ -70,65 +75,64 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase font-bold mb-1 text-blue-200">Username</label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white/10 border-white/20 text-white"
-                  required
-                />
-              </div>
+              <GlassInput
+                label="Username"
+                variant="compact"
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                required
+              />
 
-              <div>
-                <label className="block text-xs uppercase font-bold mb-1 text-blue-200">Nama Lengkap</label>
-                <input
-                  type="text"
-                  value={formData.nama}
-                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                  className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white/10 border-white/20 text-white"
-                  required
-                />
-              </div>
+              <GlassInput
+                label="Nama Lengkap"
+                variant="compact"
+                type="text"
+                value={formData.nama}
+                onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                required
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs uppercase font-bold mb-1 text-blue-200">Role</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white/10 border-white/20 text-white"
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
+                    className={selectClass}
                   >
                     <option value="admin">Admin OPD</option>
                     <option value="super_admin">Super Admin</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs uppercase font-bold mb-1 text-blue-200">OPD / Instansi</label>
-                  <input
-                    type="text"
-                    value={formData.opd}
-                    onChange={(e) => setFormData({ ...formData, opd: e.target.value })}
-                    className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white/10 border-white/20 text-white"
-                    placeholder="Contoh: Diskominfo"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase font-bold mb-1 text-blue-200">
-                  Password {mode === 'edit' && <span className="font-normal normal-case text-blue-300/70">(Kosongkan jika tidak diubah)</span>}
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white/10 border-white/20 text-white"
-                  placeholder={mode === 'add' ? 'Wajib diisi' : '••••••'}
-                  required={mode === 'add'} // Wajib cuma pas tambah baru
+                <GlassInput
+                  label="OPD / Instansi"
+                  variant="compact"
+                  type="text"
+                  value={formData.opd}
+                  onChange={(e) => setFormData({ ...formData, opd: e.target.value })}
+                  placeholder="Contoh: Diskominfo"
                 />
               </div>
+
+              <GlassInput
+                label={
+                  <>
+                    Password{' '}
+                    {mode === 'edit' && (
+                      <span className="font-normal normal-case text-blue-300/70">
+                        (Kosongkan jika tidak diubah)
+                      </span>
+                    )}
+                  </>
+                }
+                variant="compact"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder={mode === 'add' ? 'Wajib diisi' : '••••••'}
+                required={mode === 'add'}
+              />
 
               <div className="flex justify-end gap-3 mt-6">
                 <button
@@ -147,9 +151,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
             </form>
           </motion.div>
         </div>
-      )
-      }
-    </AnimatePresence >
+      )}
+    </AnimatePresence>
   );
 };
 

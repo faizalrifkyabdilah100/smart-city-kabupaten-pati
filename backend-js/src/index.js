@@ -26,6 +26,7 @@ const cors = require('cors');
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const proxyRoutes = require('./routes/proxyRoutes');
 
 // Bikin Express app
 const app = express();
@@ -64,6 +65,7 @@ app.use(express.urlencoded({ extended: true }));
 // Mount routes di /api (sama seperti $routes->group('api') di CI4)
 app.use('/api', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api', proxyRoutes);
 
 // Root route - health check
 app.get('/', (req, res) => {

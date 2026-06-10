@@ -2,9 +2,10 @@
 // SERVER MONITORING API SERVICE
 // =========================================
 // Fungsi untuk mengambil data monitoring server
-// (CPU, Memory, Storage) dari backend.
+// (CPU, Memory, Storage) melalui backend proxy.
+// IP internal tersembunyi dari client browser.
 
-
+import { API_BASE_URL } from '../config/api';
 
 // === TIPE DATA ===
 
@@ -76,21 +77,15 @@ export function getUsageColor(percent: number): string {
     return '#10b981'; // hijau
 }
 
-// === API CALL ===
+// === API CALLS (melalui backend proxy) ===
 
 /**
- * Ambil data monitoring server dari API eksternal
+ * Ambil data monitoring server dari backend proxy
  * Auto-refresh cocok dengan interval 5 detik
  */
 export async function fetchServerData(): Promise<ServerData[] | null> {
     try {
-        const url = import.meta.env.VITE_SERVER_API_URL;
-        if (!url) {
-            console.error('VITE_SERVER_API_URL belum dikonfigurasi di .env');
-            return null;
-        }
-
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/servers`);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
@@ -105,17 +100,11 @@ export async function fetchServerData(): Promise<ServerData[] | null> {
 }
 
 /**
- * Ambil data monitoring server dari sumber kedua API eksternal
+ * Ambil data monitoring server dari sumber kedua melalui proxy
  */
 export async function fetchServerData2(): Promise<ServerData[] | null> {
     try {
-        const url = import.meta.env.VITE_SERVER_API_URL_2;
-        if (!url) {
-            console.error('VITE_SERVER_API_URL_2 belum dikonfigurasi di .env');
-            return null;
-        }
-
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/servers2`);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
@@ -130,17 +119,11 @@ export async function fetchServerData2(): Promise<ServerData[] | null> {
 }
 
 /**
- * Ambil data monitoring VM dari endpoint eksternal
+ * Ambil data monitoring VM melalui proxy
  */
 export async function fetchVmServerData(): Promise<ServerData[] | null> {
     try {
-        const url = import.meta.env.VITE_VM_API_URL;
-        if (!url) {
-            console.error('VITE_VM_API_URL belum dikonfigurasi di .env');
-            return null;
-        }
-
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/vm`);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);

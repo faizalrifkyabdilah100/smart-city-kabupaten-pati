@@ -1,4 +1,6 @@
 
+import { API_BASE_URL } from '../config/api';
+
 export interface MenaraData {
     id: string;
     id_menara: string;
@@ -15,15 +17,13 @@ export interface MenaraData {
     no_rekom_kominfo?: string | null;
 }
 
+/**
+ * Ambil data menara melalui backend proxy
+ * (IP internal tersembunyi dari browser)
+ */
 export async function fetchMenaraData(): Promise<MenaraData[]> {
     try {
-        const url = import.meta.env.VITE_MENARA_API_URL;
-        if (!url) {
-            console.error('VITE_MENARA_API_URL belum dikonfigurasi di .env');
-            return [];
-        }
-
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/menara`);
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);

@@ -4,7 +4,6 @@ import { services } from '../data/services';
 import { type Service } from '../types';
 import ServiceCard from '../components/common/ServiceCard';
 import Navbar from '../components/layout/Navbar';
-import PopupView from '../components/common/PopupView';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import logoSmartCity from '../assets/images/logo-smart-city2.png';
 import { useAuth } from '../hooks/useAuth';
@@ -12,7 +11,6 @@ import { useTheme } from '../hooks/useTheme';
 
 const Home: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
-  const [activePopup, setActivePopup] = useState<string | null>(null);
   const user = useAuth();
   const navigate = useNavigate();
   const { isDark } = useTheme();
@@ -33,12 +31,10 @@ const Home: React.FC = () => {
     return item;
   });
 
-  // FUNGSI NAVIGASI PINTAR
+  // FUNGSI NAVIGASI
   const handleCardClick = (item: Service) => {
     if (item.path) {
       navigate(item.path);
-    } else {
-      setActivePopup(item.title);
     }
   };
 
@@ -49,7 +45,7 @@ const Home: React.FC = () => {
       <div className="flex-1 flex items-center justify-center relative z-10">
 
         {/* Navbar (Sembunyi kalau lagi hover/popup) */}
-        <Navbar show={!isHovered && !activePopup} />
+        <Navbar show={!isHovered} />
 
         {/* === ORBIT SYSTEM === */}
         {/* Responsive: scale down on smaller screens */}
@@ -59,7 +55,7 @@ const Home: React.FC = () => {
             sm:w-[550px] sm:h-[550px] 
             md:w-[700px] md:h-[700px] 
             lg:w-[900px] lg:h-[900px] 
-            transition-all duration-700 ease-in-out ${activePopup ? 'scale-150 opacity-0 pointer-events-none blur-sm' : 'scale-100 opacity-100'}`}
+            transition-all duration-700 ease-in-out`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onClick={() => {
@@ -106,18 +102,16 @@ const Home: React.FC = () => {
                 }
               }}
               className="absolute inset-0 flex items-center justify-center cursor-pointer"
-              style={{ pointerEvents: activePopup ? 'none' : 'auto' }}
+              style={{ pointerEvents: 'auto' }}
             >
               <ServiceCard service={item} show={isHovered} />
             </div>
           ))}
         </div>
 
-        {/* POPUP VIEW (Untuk menu yg belum ada path) */}
-        <PopupView type={activePopup} onClose={() => setActivePopup(null)} />
 
         {/* Footer Logo Kecil */}
-        <div className={`absolute bottom-4 right-4 sm:bottom-6 sm:right-6 opacity-80 hover:opacity-100 transition-all duration-500 cursor-pointer z-50 ${activePopup ? 'translate-y-20 opacity-0' : ''}`}>
+        <div className={`absolute bottom-4 right-4 sm:bottom-6 sm:right-6 opacity-80 hover:opacity-100 transition-all duration-500 cursor-pointer z-50`}>
           <div className={`w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm rounded-lg shadow-lg flex items-center justify-center p-1.5 sm:p-2 border transition-colors duration-500 ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/60 border-white/40'}`}>
             <img src={logoSmartCity} alt="logo footer" className="w-full h-full object-contain" />
           </div>

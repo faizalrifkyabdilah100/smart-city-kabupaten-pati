@@ -3,11 +3,17 @@
  * ============
  * Ini pengganti $routes->resource('users') di CI4 Routes.php
  * Berisi semua endpoint CRUD user
+ * 
+ * Semua route dilindungi oleh JWT auth middleware
  */
 
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Semua route user dilindungi auth middleware
+router.use(authMiddleware);
 
 // GET    /api/users       → Lihat semua user
 router.get('/', userController.index);
@@ -22,3 +28,4 @@ router.put('/:id', userController.update);
 router.delete('/:id', userController.delete);
 
 module.exports = router;
+

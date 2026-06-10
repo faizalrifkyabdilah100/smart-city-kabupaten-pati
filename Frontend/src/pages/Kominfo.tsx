@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import { motion } from 'framer-motion';
-import { formatTanggal } from '../utils/formatTanggal';
 import { useTheme } from '../hooks/useTheme';
+import { useThemeStyles } from '../hooks/useThemeStyles';
 import { fetchTrafficData, transformTrafficData } from '../services/trafficApi';
 import { fetchCctvData } from '../services/cctvApi';
 import type { CctvMain } from '../services/cctvApi';
@@ -18,9 +18,21 @@ import { fetchMenaraData } from '../services/menaraApi';
 import type { MenaraData } from '../services/menaraApi';
 import MenaraSidebar from '../components/kominfo/MenaraSidebar';
 import CctvPlayer from '../components/kominfo/CctvPlayer';
+import { PageHeader } from '../components/common/PageHeader';
+import { StatusBadge } from '../components/common/StatusBadge';
+import { Spinner } from '../components/common/Spinner';
 
 const Kominfo: React.FC = () => {
   const { isDark } = useTheme();
+  const {
+    cardStyle,
+    cardStyleFlat,
+    headingStyle,
+    subTextStyle,
+    cardHeaderStyle,
+    sidebarStyle,
+    closeButtonStyle,
+  } = useThemeStyles();
 
   // === EXPAND SERVER DETAIL STATE ===
   const [expandedServer, setExpandedServer] = useState<{ server: ServerData; source: string } | null>(null);
@@ -31,6 +43,7 @@ const Kominfo: React.FC = () => {
   // === TRAFFIC DATA STATE ===
   const [trafficData, setTrafficData] = useState<ReturnType<typeof transformTrafficData> | null>(null);
   const [trafficLoading, setTrafficLoading] = useState(true);
+  const [trafficError, setTrafficError] = useState(false);
 
   // === CCTV DATA STATE ===
   const [cctvData, setCctvData] = useState<CctvMain | null>(null);
@@ -38,14 +51,17 @@ const Kominfo: React.FC = () => {
   // === SERVER MONITORING STATE ===
   const [serverData, setServerData] = useState<ServerData[] | null>(null);
   const [serverLoading, setServerLoading] = useState(true);
+  const [serverError, setServerError] = useState(false);
 
   // === SERVER MONITORING 2 STATE ===
   const [serverData2, setServerData2] = useState<ServerData[] | null>(null);
   const [serverLoading2, setServerLoading2] = useState(true);
+  const [serverError2, setServerError2] = useState(false);
 
   // === VM SERVER STATE ===
   const [vmData, setVmData] = useState<ServerData[] | null>(null);
   const [vmLoading, setVmLoading] = useState(true);
+  const [vmError, setVmError] = useState(false);
 
   // === MENARA DATA STATE ===
   const [menaraData, setMenaraData] = useState<MenaraData[]>([]);
@@ -64,12 +80,11 @@ const Kominfo: React.FC = () => {
     loadCctv();
   }, []);
 
-  // Auto-refresh traffic & server monitoring setiap 1 detik (Consolidated)
+  // Auto-refresh traffic & server monitoring setiap 2 detik (Consolidated)
   useEffect(() => {
     let isMounted = true;
 
     const loadRealtimeData = async () => {
-      // Jalankan fetch secara paralel untuk efisiensi
       const [rawTraffic, rawServers] = await Promise.all([
         fetchTrafficData(),
         fetchServerData()
@@ -79,17 +94,23 @@ const Kominfo: React.FC = () => {
 
       if (rawTraffic) {
         setTrafficData(transformTrafficData(rawTraffic));
+        setTrafficError(false);
+      } else {
+        setTrafficError(true);
       }
       setTrafficLoading(false);
 
       if (rawServers) {
         setServerData(rawServers);
+        setServerError(false);
+      } else {
+        setServerError(true);
       }
       setServerLoading(false);
     };
 
     loadRealtimeData();
-    const interval = setInterval(loadRealtimeData, 2000); // 2 detik agar lebih stabil & hemat RAM
+    const interval = setInterval(loadRealtimeData, 2000);
 
     return () => {
       isMounted = false;
@@ -97,7 +118,7 @@ const Kominfo: React.FC = () => {
     };
   }, []);
 
-  // Auto-refresh server monitoring 2 setiap 5 detik
+  // Auto-refresh server monitoring 2
   useEffect(() => {
     let isMounted = true;
 
@@ -105,12 +126,15 @@ const Kominfo: React.FC = () => {
       const data = await fetchServerData2();
       if (data && isMounted) {
         setServerData2(data);
+        setServerError2(false);
+      } else if (isMounted) {
+        setServerError2(true);
       }
       if (isMounted) setServerLoading2(false);
     };
 
     loadServers2();
-    const interval = setInterval(loadServers2, 500000); // Jarang refresh untuk server 2
+    const interval = setInterval(loadServers2, 500000);
 
     return () => {
       isMounted = false;
@@ -126,6 +150,9 @@ const Kominfo: React.FC = () => {
       const data = await fetchVmServerData();
       if (data && isMounted) {
         setVmData(data);
+        setVmError(false);
+      } else if (isMounted) {
+        setVmError(true);
       }
       if (isMounted) setVmLoading(false);
     };
@@ -154,41 +181,28 @@ const Kominfo: React.FC = () => {
     setMapZoom(17);
   }, []);
 
-  // === STYLE HELPERS ===
-  // Both modes have blue background, so use glass card styling for both
-  const cardStyle = isDark
-    ? 'bg-slate-900/40 backdrop-blur-md border-white/20 hover:border-cyan-400/50'
-    : 'bg-blue-950/30 backdrop-blur-md border-white/30 hover:border-cyan-200/50';
-  const headingStyle = 'text-white';
-  const subTextStyle = isDark ? 'text-slate-400' : 'text-blue-100';
-
   return (
     <SmartCityLayout>
       <div className="w-full flex flex-col gap-3 px-3 sm:px-4 lg:px-6 pb-6">
 
         {/* === HEADER === */}
-        <div className="w-full py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 animate-slide-down shrink-0 z-20">
-          <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight drop-shadow-lg text-white">
-              Portal <span className="text-purple-400">Kominfo</span>
-            </h1>
-            <p className={`text-xs sm:text-sm lg:text-base font-light ${subTextStyle}`}>Dashboard Informasi & Monitoring Media Sosial</p>
-          </div>
-          <div className="backdrop-blur-md bg-white/10 border-white/20 border px-3 sm:px-4 py-1.5 rounded-full font-mono text-[10px] sm:text-xs lg:text-sm shadow-lg text-white">
-            {formatTanggal()}
-          </div>
-        </div>
+        <PageHeader
+          title="Portal"
+          titleAccent="Kominfo"
+          titleAccentColor="text-purple-400"
+          subtitle="Dashboard Informasi & Monitoring Media Sosial"
+        />
 
         {/* === MAIN LAYOUT === */}
-        <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 z-10 lg:flex-1" style={{ minHeight: 0 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-3 sm:gap-4 z-10 w-full lg:flex-1" style={{ minHeight: 0 }}>
 
           {/* === SERVER MONITORING === */}
-          <div className="flex flex-col gap-3 sm:gap-4 lg:w-80 shrink-0">
-            {/* === SERVER MONITORING 1 (ServerPanel Reusable) === */}
+          <div className="flex flex-col gap-3 sm:gap-4 lg:col-span-1 xl:col-span-3 min-h-0">
             <ServerPanel
               title="Server Monitoring"
               data={serverData}
               loading={serverLoading}
+              error={serverError}
               isDark={isDark}
               onExpand={(server) => setExpandedServer({ server, source: 'Server Monitoring' })}
               accentColor={isDark ? 'bg-cyan-400' : 'bg-blue-500'}
@@ -197,11 +211,11 @@ const Kominfo: React.FC = () => {
               apiHint="SERVER_API_URL"
             />
 
-            {/* === VM SERVER MONITORING (Filling empty space) === */}
             <ServerPanel
               title="Status Server Provider"
               data={vmData}
               loading={vmLoading}
+              error={vmError}
               isDark={isDark}
               onExpand={(server) => setExpandedServer({ server, source: 'Status Server Provider' })}
               accentColor={isDark ? 'bg-emerald-400' : 'bg-emerald-500'}
@@ -212,21 +226,23 @@ const Kominfo: React.FC = () => {
           </div>
 
           {/* === SERVER MONITORING 2 === */}
-          {/* === SERVER MONITORING 2 (ServerPanel Reusable) === */}
-          <ServerPanel
-            title="Server Monitoring 2"
-            data={serverData2}
-            loading={serverLoading2}
-            isDark={isDark}
-            onExpand={(server) => setExpandedServer({ server, source: 'Server Monitoring 2' })}
-            accentColor={isDark ? 'bg-purple-400' : 'bg-purple-500'}
-            pulseColor={isDark ? 'bg-purple-400' : 'bg-purple-500'}
-            hoverBorderColor="hover:border-purple-400/30"
-            apiHint="SERVER_API_URL_2"
-          />
+          <div className="flex flex-col gap-3 sm:gap-4 lg:col-span-1 xl:col-span-3 min-h-0">
+            <ServerPanel
+              title="Server Monitoring 2"
+              data={serverData2}
+              loading={serverLoading2}
+              error={serverError2}
+              isDark={isDark}
+              onExpand={(server) => setExpandedServer({ server, source: 'Server Monitoring 2' })}
+              accentColor={isDark ? 'bg-purple-400' : 'bg-purple-500'}
+              pulseColor={isDark ? 'bg-purple-400' : 'bg-purple-500'}
+              hoverBorderColor="hover:border-purple-400/30"
+              apiHint="SERVER_API_URL_2"
+            />
+          </div>
 
           {/* === KANAN: CCTV + METRICS + MAP === */}
-          <div className="flex-1 flex flex-col gap-3 sm:gap-4 min-w-0">
+          <div className="lg:col-span-2 xl:col-span-6 flex flex-col gap-3 sm:gap-4 min-w-0">
 
             {/* === ROW ATAS: CCTV + INTERNET TRAFFIC === */}
             <div className="flex flex-col md:flex-row gap-3 sm:gap-4 md:h-[350px]">
@@ -235,15 +251,9 @@ const Kominfo: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`w-full md:w-1/2 lg:w-[540px] border rounded-2xl overflow-hidden shadow-xl flex flex-col md:shrink-0 min-h-[200px] sm:min-h-[250px] ${isDark
-                  ? 'bg-slate-900/40 backdrop-blur-md border-white/20'
-                  : 'bg-blue-950/30 backdrop-blur-md border-white/30'
-                  }`}
+                className={`md:flex-[3] w-full border rounded-2xl overflow-hidden shadow-xl flex flex-col min-h-[200px] sm:min-h-[250px] md:min-h-0 min-w-0 ${cardStyleFlat}`}
               >
-                <div className={`border-b px-3 sm:px-5 py-2 flex justify-between items-center shrink-0 ${isDark
-                  ? 'bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border-white/10'
-                  : 'bg-gradient-to-r from-purple-900/15 to-cyan-900/15 border-white/10'
-                  }`}>
+                <div className={`border-b px-3 sm:px-5 py-2 flex justify-between items-center shrink-0 ${cardHeaderStyle}`}>
                   <div>
                     <h3 className={`font-bold text-xs sm:text-sm ${headingStyle}`}>CCTV Live Feed</h3>
                     <p className={`text-[10px] sm:text-xs ${subTextStyle}`}>{cctvData?.location || 'Memuat...'}</p>
@@ -273,11 +283,16 @@ const Kominfo: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className={`flex-1 border rounded-2xl p-3 shadow-xl transition-all flex flex-col overflow-hidden min-w-0 ${cardStyle}`}
+                className={`md:flex-[2] w-full border rounded-2xl p-3 shadow-xl transition-all flex flex-col overflow-hidden min-w-0 ${cardStyle}`}
               >
                 <h3 className={`font-bold text-xs sm:text-sm mb-2 px-1 flex items-center gap-2 ${headingStyle}`}>
-                  <span className="w-2 h-2 rounded-full animate-pulse bg-cyan-400"></span>
+                  <span className={`w-2 h-2 rounded-full animate-pulse ${trafficError ? 'bg-red-400' : 'bg-cyan-400'}`}></span>
                   Internet Traffic
+                  {trafficError && (
+                    <span className="text-[8px] font-medium text-red-400/80 bg-red-400/10 border border-red-400/20 px-1.5 py-0.5 rounded">
+                      Offline
+                    </span>
+                  )}
                 </h3>
 
                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-1.5 sm:space-y-2">
@@ -302,10 +317,7 @@ const Kominfo: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`md:h-[450px] border rounded-2xl overflow-hidden shadow-xl flex flex-col ${isDark
-                ? 'bg-slate-900/40 backdrop-blur-md border-white/20'
-                : 'bg-blue-950/30 backdrop-blur-md border-white/30'
-                }`}
+              className={`md:h-[450px] border rounded-2xl overflow-hidden shadow-xl flex flex-col ${cardStyleFlat}`}
             >
               <div className={`border-b px-3 sm:px-5 py-2 shrink-0 ${isDark
                 ? 'bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border-white/10'
@@ -318,10 +330,7 @@ const Kominfo: React.FC = () => {
                 <div className="flex-1 overflow-hidden min-h-[180px] sm:min-h-0 relative">
                   {menaraLoading ? (
                     <div className="w-full h-full flex items-center justify-center bg-slate-800/20">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-white text-xs">Memuat Peta Menara...</span>
-                      </div>
+                      <Spinner size="md" color="border-cyan-400" label="Memuat Peta Menara..." isDark={isDark} />
                     </div>
                   ) : (
                     <MenaraMap
@@ -333,10 +342,7 @@ const Kominfo: React.FC = () => {
                 </div>
 
                 {/* Sidebar Menara */}
-                <div className={`w-full sm:w-48 lg:w-56 sm:border-l border-t sm:border-t-0 p-2 sm:p-3 overflow-y-auto no-scrollbar shrink-0 ${isDark
-                  ? 'bg-slate-950/50 border-white/10'
-                  : 'bg-blue-950/40 border-white/10'
-                  }`}>
+                <div className={`w-full sm:w-48 lg:w-56 sm:border-l border-t sm:border-t-0 p-2 sm:p-3 overflow-y-auto no-scrollbar shrink-0 ${sidebarStyle}`}>
                   <div className="flex justify-between items-center mb-2 px-1">
                     <h4 className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-300">Daftar Menara</h4>
                     <span className="text-[9px] text-cyan-400 font-mono">{menaraData.length}</span>
@@ -344,8 +350,6 @@ const Kominfo: React.FC = () => {
                   <MenaraSidebar
                     data={menaraData}
                     loading={menaraLoading}
-                    headingStyle={headingStyle}
-                    subTextStyle={subTextStyle}
                     onItemClick={handleLocationClick}
                   />
                 </div>
@@ -353,9 +357,9 @@ const Kominfo: React.FC = () => {
             </motion.div>
 
           </div>
-        </div >
+        </div>
 
-      </div >
+      </div>
 
       {/* === EXPANDED SERVER DETAIL OVERLAY === */}
       <ModalOverlay
@@ -376,18 +380,13 @@ const Kominfo: React.FC = () => {
                 </h2>
               </div>
               <div className="flex items-center gap-3">
-                {expandedServer.server.error ? (
-                  <span className="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-semibold">
-                    Offline
-                  </span>
-                ) : (
-                  <span className="text-xs px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 font-semibold">
-                    Online
-                  </span>
-                )}
+                <StatusBadge
+                  status={expandedServer.server.error ? 'Offline' : 'Online'}
+                  size="sm"
+                />
                 <button
                   onClick={() => setExpandedServer(null)}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-red-500/20 hover:text-red-400 transition-colors text-sm"
+                  className={closeButtonStyle}
                 >
                   ✕
                 </button>
@@ -480,12 +479,10 @@ const Kominfo: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 font-semibold">
-                  {expandedTraffic.status}
-                </span>
+                <StatusBadge status={expandedTraffic.status} size="sm" />
                 <button
                   onClick={() => setExpandedTraffic(null)}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-red-500/20 hover:text-red-400 transition-colors text-sm"
+                  className={closeButtonStyle}
                 >
                   ✕
                 </button>
@@ -540,7 +537,7 @@ const Kominfo: React.FC = () => {
         )}
       </ModalOverlay>
 
-    </SmartCityLayout >
+    </SmartCityLayout>
   );
 };
 

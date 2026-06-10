@@ -97,10 +97,9 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
   // === 2. LOGIKA MENU (MENYESUAIKAN services.ts) ===
 
   let title = "";
-  let iconHeader = ""; // Icon besar di atas judul popup
+  let iconHeader = "";
   let buttons: { label: string; icon: string; link?: string }[] = [];
 
-  // --- LOGIKA PERCABANGAN (SWITCH) ---
   switch (type) {
     case 'Lingkungan Hidup':
       title = "Dinas Lingkungan Hidup";
@@ -147,7 +146,6 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
       break;
 
     default:
-      // Fallback jika ada menu baru yang belum di-handle
       title = type;
       iconHeader = "📂";
       buttons = [{ label: "Coming Soon", icon: "⏳" }];
@@ -180,13 +178,10 @@ const PopupView: React.FC<Props> = ({ type, onClose }) => {
         {buttons.map((btn, idx) => (
           <div
             key={idx}
-            className={`group rounded-2xl p-4 w-40 h-40 md:w-48 md:h-48 flex flex-col items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition-all duration-300 border-b-4 border-transparent hover:border-blue-500 ${isDark
-              ? 'bg-white/90 hover:bg-white'
-              : 'bg-white hover:bg-white'
-              }`}
+            className={`group rounded-2xl p-4 w-40 h-40 md:w-48 md:h-48 flex flex-col items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition-all duration-300 border-b-4 border-transparent hover:border-blue-500 bg-white hover:bg-white`}
           >
             {/* Icon Tombol */}
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 text-4xl transition-colors shadow-inner ${isDark ? 'bg-blue-50 group-hover:bg-blue-100' : 'bg-blue-50 group-hover:bg-blue-100'}`}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 text-4xl transition-colors shadow-inner bg-blue-50 group-hover:bg-blue-100">
               {btn.icon}
             </div>
 

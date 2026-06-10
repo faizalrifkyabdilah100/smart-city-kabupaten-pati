@@ -12,24 +12,22 @@ import {
   dataAdiwiyata, dataTPA, dataKomposisi,
   dataSampah, dataRTH, dataPerusahaan
 } from '../data/dashboardData';
-import { formatTanggal } from '../utils/formatTanggal';
 import { useTheme } from '../hooks/useTheme';
+import { useThemeStyles } from '../hooks/useThemeStyles';
+import { PageHeader } from '../components/common/PageHeader';
 
 // === KOMPONEN UTAMA ===
 const LingkunganHidup: React.FC = () => {
   const [activeId, setActiveId] = useState<WidgetId | null>(null);
   const { isDark } = useTheme();
+  const { headingStyle, subTextStyle, innerBoxStyle } = useThemeStyles();
 
-  // === STYLE HELPERS ===
-  // Both modes have blue background, use consistent styling
-  const headingStyle = 'text-white';
-  const subTextStyle = isDark ? 'text-slate-400' : 'text-blue-100';
+  // === CHART STYLE HELPERS ===
   const axisColor = '#94a3b8';
   const tooltipBg = isDark ? '#0f172a' : '#1e3a5f';
   const tooltipBorder = isDark ? '#334155' : '#3b82c8';
   const tooltipText = '#ffffff';
   const cursorFill = 'rgba(255,255,255,0.05)';
-  const innerBoxStyle = isDark ? 'bg-slate-950/40 border-white/10' : 'bg-white/10 border-white/15';
 
   // === FUNGSI RENDER KONTEN ===
   const renderContent = (id: WidgetId, isExpanded: boolean) => {
@@ -201,17 +199,12 @@ const LingkunganHidup: React.FC = () => {
       <div className="w-full h-full flex flex-col">
 
         {/* HEADER */}
-        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 animate-slide-down shrink-0 z-20">
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight drop-shadow-lg text-white">
-              Dashboard <span className="text-green-400">Lingkungan Hidup</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="backdrop-blur-md bg-white/10 border-white/20 border px-3 sm:px-4 py-1.5 rounded-full font-mono text-[10px] sm:text-xs md:text-sm shadow-lg text-white">
-              {formatTanggal()}
-            </div>
-          </div>
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8">
+          <PageHeader
+            title="Dashboard"
+            titleAccent="Lingkungan Hidup"
+            titleAccentColor="text-green-400"
+          />
         </div>
 
         {/* CONTENT GRID */}
@@ -276,7 +269,7 @@ const LingkunganHidup: React.FC = () => {
                   </h2>
                   <button
                     onClick={(e) => { e.stopPropagation(); setActiveId(null); }}
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shrink-0 text-sm sm:text-base text-white bg-white/10 hover:bg-red-500/20 hover:text-red-400`}
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shrink-0 text-sm sm:text-base text-white bg-white/10 hover:bg-red-500/20 hover:text-red-400"
                   >
                     ✕
                   </button>

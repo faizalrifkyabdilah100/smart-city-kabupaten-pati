@@ -7,6 +7,9 @@
 
 const db = require('../config/database');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'smart-city-pati-secret-key-change-me';
 
 const authController = {
     /**
@@ -53,7 +56,7 @@ const authController = {
                 });
             }
 
-            // 5. Sukses! Kembalikan data (Tanpa Password)
+            // 5. Sukses! Buat JWT token & kembalikan data (Tanpa Password)
             const dataResponse = {
                 id: user.id,
                 username: user.username,
@@ -62,10 +65,13 @@ const authController = {
                 opd: user.opd,
             };
 
+            const token = jwt.sign(dataResponse, JWT_SECRET, { expiresIn: '24h' });
+
             return res.status(200).json({
                 status: 200,
                 message: 'Login Berhasil',
                 data: dataResponse,
+                token,
             });
 
         } catch (error) {

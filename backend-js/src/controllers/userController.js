@@ -18,15 +18,12 @@ const userController = {
      */
     index: async (req, res) => {
         try {
-            const [rows] = await db.query('SELECT * FROM users ORDER BY id DESC');
+            // Hanya ambil kolom yang dibutuhkan (tanpa password)
+            const [rows] = await db.query(
+                'SELECT id, username, nama, opd, role, created_at, updated_at FROM users ORDER BY id DESC'
+            );
 
-            // Hapus password hash dari response biar aman
-            const data = rows.map(user => {
-                const { password, ...userWithoutPassword } = user;
-                return userWithoutPassword;
-            });
-
-            return res.status(200).json(data);
+            return res.status(200).json(rows);
         } catch (error) {
             console.error('Fetch users error:', error);
             return res.status(500).json({

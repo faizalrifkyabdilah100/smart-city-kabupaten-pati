@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ThemeProvider, useTheme } from './hooks/useTheme';
-
+import { ToastProvider } from './components/common/Toast';
 import GlobalBackground from './components/layout/GlobalBackground';
 import PageTransition from './components/common/PageTransition';
 
@@ -116,7 +116,9 @@ const AppContent = () => {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </ThemeProvider>
   );
 }

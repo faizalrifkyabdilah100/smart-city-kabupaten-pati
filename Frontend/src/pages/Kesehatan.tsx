@@ -41,4 +41,4 @@ const Kesehatan: React.FC = () => {
   );
 };
 
-export default Kesehatan;
+export default Kesehatan;

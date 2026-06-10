@@ -1,8 +1,10 @@
 /**
  * TrafficCard Component
  * Menampilkan kartu status trafik internet untuk satu ISP (Nexa, Astinet, Indibiz)
+ * Refactored: uses useThemeStyles hook + StatusBadge component.
  */
-
+import { useThemeStyles } from '../../hooks/useThemeStyles';
+import { StatusBadge } from '../common/StatusBadge';
 
 interface TrafficCardProps {
     isp: {
@@ -19,27 +21,21 @@ interface TrafficCardProps {
 }
 
 export const TrafficCard = ({ isp, loading, isDark, onExpand }: TrafficCardProps) => {
-    const innerBoxStyle = isDark
-        ? 'bg-slate-800/40 border-white/5'
-        : 'bg-white/20 border-white/20';
-
-    const headingStyle = 'text-white';
-    const labelStyle = isDark ? 'text-slate-500' : 'text-blue-200';
+    const { headingStyle, labelStyle, innerBoxStyleAlt } = useThemeStyles();
 
     return (
         <div
             onClick={() => onExpand(isp)}
-            className={`rounded-xl p-2 sm:p-2.5 border cursor-pointer transition-all group hover:scale-[1.01] ${innerBoxStyle} ${isDark ? 'hover:border-cyan-400/30' : 'hover:border-cyan-200/50'}`}
+            className={`rounded-xl p-2 sm:p-2.5 border cursor-pointer transition-all group hover:scale-[1.01] ${innerBoxStyleAlt} ${isDark ? 'hover:border-cyan-400/30' : 'hover:border-cyan-200/50'}`}
         >
             <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: isp.color }}></div>
                     <span className={`text-[10px] sm:text-[11px] font-bold ${headingStyle}`}>{isp.name}</span>
                 </div>
-                <span className="text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
-                    {isp.status}
-                </span>
+                <StatusBadge status={isp.status} size="xs" />
             </div>
+
             <div className="grid grid-cols-2 gap-1.5">
                 <div className={`rounded-lg p-1.5 border ${isDark ? 'bg-slate-900/40 border-white/5' : 'bg-white/5 border-white/10'}`}>
                     <p className={`text-[6px] sm:text-[7px] uppercase tracking-wider mb-0.5 ${labelStyle}`}>↓ RX (Download)</p>

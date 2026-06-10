@@ -1,21 +1,25 @@
+/**
+ * MenaraSidebar — Sidebar listing menara (tower) locations.
+ * Refactored: now uses useThemeStyles internally instead of receiving
+ * headingStyle / subTextStyle as props, removing prop drilling.
+ */
 import React from 'react';
 import type { MenaraData } from '../../services/menaraApi';
+import { useThemeStyles } from '../../hooks/useThemeStyles';
 
 interface MenaraSidebarProps {
     data: MenaraData[];
     loading: boolean;
-    headingStyle: string;
-    subTextStyle: string;
     onItemClick: (lat: number, lng: number) => void;
 }
 
 const MenaraSidebar: React.FC<MenaraSidebarProps> = ({
     data,
     loading,
-    headingStyle,
-    subTextStyle,
     onItemClick
 }) => {
+    const { headingStyle, subTextStyle } = useThemeStyles();
+
     return (
         <div className="flex sm:flex-col gap-1.5 overflow-x-auto sm:overflow-x-visible no-scrollbar pb-1 sm:pb-0">
             {loading ? (

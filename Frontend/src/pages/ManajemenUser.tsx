@@ -5,10 +5,13 @@ import Navbar from '../components/layout/Navbar';
 import UserFormModal from '../components/common/UserFormModal';
 import { API_BASE_URL } from '../config/api';
 import { useTheme } from '../hooks/useTheme';
+import { useToast } from '../components/common/Toast';
+import { getAuthHeaders } from '../utils/auth';
 
 const ManajemenUser: React.FC = () => {
   const navigate = useNavigate();
-  const { isDark: _isDark } = useTheme();
+  const { isDark } = useTheme();
+  const { showToast } = useToast();
 
   // State Data
   const [users, setUsers] = useState<User[]>([]);
@@ -19,30 +22,33 @@ const ManajemenUser: React.FC = () => {
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // 1. CEK LOGIN & FETCH DATA
+  // FETCH DATA (ProtectedRoute sudah handle cek login)
   useEffect(() => {
-    const savedUser = localStorage.getItem('user_data');
-    if (!savedUser) {
-      navigate('/login');
-      return;
-    }
     fetchUsers();
-  }, [navigate]);
+  }, []);
 
-  // 2. FUNGSI AMBIL DATA
+  // FUNGSI AMBIL DATA
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users`);
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        headers: getAuthHeaders(),
+      });
+      if (response.status === 401) {
+        showToast('Sesi login habis, silakan login ulang.', 'error');
+        navigate('/login');
+        return;
+      }
       const result = await response.json();
       setUsers(result);
     } catch (error) {
       console.error("Gagal ambil data:", error);
+      showToast('Gagal terhubung ke server.', 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 3. FUNGSI BUKA MODAL
+  // FUNGSI BUKA MODAL
   const handleAdd = () => {
     setModalMode('add');
     setSelectedUser(null);
@@ -55,8 +61,8 @@ const ManajemenUser: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // 4. LOGIKA SIMPAN (Create/Update)
-  const handleSave = async (formData: any) => {
+  // LOGIKA SIMPAN (Create/Update)
+  const handleSave = async (formData: Omit<User, 'id'>) => {
     const url = modalMode === 'add'
       ? `${API_BASE_URL}/users`
       : `${API_BASE_URL}/users/${selectedUser?.id}`;
@@ -65,48 +71,74 @@ const ManajemenUser: React.FC = () => {
 
     try {
       const response = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
+        method,
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        alert(modalMode === 'add' ? "User berhasil dibuat!" : "User berhasil diupdate!");
+        showToast(
+          modalMode === 'add' ? 'User berhasil dibuat!' : 'User berhasil diupdate!',
+          'success'
+        );
         setIsModalOpen(false);
         fetchUsers();
       } else {
         const err = await response.json();
-        alert("Gagal: " + (err.messages?.error || "Terjadi kesalahan"));
+        showToast('Gagal: ' + (err.messages?.error || 'Terjadi kesalahan'), 'error');
       }
     } catch (error) {
-      alert("Error koneksi ke server.");
+      showToast('Error koneksi ke server.', 'error');
     }
   };
 
-  // 5. FUNGSI HAPUS
+  // FUNGSI HAPUS
   const handleDelete = async (id: number, nama: string) => {
     if (!confirm(`Yakin ingin menghapus user "${nama}"?`)) return;
 
     try {
       const response = await fetch(`${API_BASE_URL}/users/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
 
       if (response.ok) {
+        showToast(`User "${nama}" berhasil dihapus.`, 'success');
         fetchUsers();
       } else {
-        alert("Gagal menghapus user.");
+        showToast('Gagal menghapus user.', 'error');
       }
     } catch (error) {
-      alert("Error koneksi.");
+      showToast('Error koneksi.', 'error');
     }
   };
 
+  // Theme-aware style classes
+  const pageBackground = isDark
+    ? 'bg-slate-950'
+    : 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100';
+  const cardBg = isDark
+    ? 'bg-blue-950/30 border-white/30'
+    : 'bg-white/60 border-slate-200/50 shadow-lg';
+  const headingColor = isDark ? 'text-white' : 'text-slate-800';
+  const subColor = isDark ? 'text-blue-200' : 'text-slate-500';
+  const rowHover = isDark ? 'hover:bg-white/5' : 'hover:bg-blue-50/50';
+  const dividerColor = isDark ? 'divide-white/5' : 'divide-slate-200/60';
+  const cellUser = isDark ? 'text-blue-300' : 'text-blue-600';
+  const cellName = isDark ? 'text-white' : 'text-slate-800';
+  const cellOpd = isDark ? 'text-blue-200' : 'text-slate-600';
+  const loadingColor = isDark ? 'text-blue-300/80' : 'text-slate-400';
+  const btnBack = isDark
+    ? 'bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border border-white/20'
+    : 'bg-white hover:bg-slate-100 active:bg-slate-200 text-slate-700 border border-slate-300 shadow-sm';
+  const mapOverlay = isDark ? 'opacity-10' : 'opacity-5';
+  const textPrimary = isDark ? 'text-white' : 'text-slate-800';
+
   return (
-    <div className="min-h-screen w-full p-3 sm:p-4 md:p-6 lg:p-8 relative overflow-y-auto text-white">
+    <div className={`min-h-screen w-full p-3 sm:p-4 md:p-6 lg:p-8 relative overflow-y-auto ${textPrimary} ${pageBackground}`}>
       {/* Background Tipis */}
       <div
-        className={`absolute top-0 left-0 w-full h-full bg-[url('/peta-pati-clean.png')] bg-cover backdrop-blur-sm pointer-events-none z-0 opacity-10`}
+        className={`absolute top-0 left-0 w-full h-full bg-[url('/peta-pati-clean.png')] bg-cover backdrop-blur-sm pointer-events-none z-0 ${mapOverlay}`}
         style={{ mixBlendMode: 'overlay' }}
       ></div>
 
@@ -118,15 +150,15 @@ const ManajemenUser: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">Manajemen User</h1>
-            <p className="text-xs sm:text-sm text-blue-200">Kelola akses admin OPD dan Super Admin</p>
+            <h1 className={`text-xl sm:text-2xl md:text-3xl font-bold ${headingColor}`}>Manajemen User</h1>
+            <p className={`text-xs sm:text-sm ${subColor}`}>Kelola akses admin OPD dan Super Admin</p>
           </div>
 
           {/* TOMBOL TAMBAH & KEMBALI */}
           <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => navigate('/')}
-              className="relative z-50 pointer-events-auto cursor-pointer px-3 sm:px-4 md:px-6 py-2 rounded-lg sm:rounded-xl font-bold shadow-lg transition-all flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial justify-center bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border border-white/20"
+              className={`relative z-50 pointer-events-auto cursor-pointer px-3 sm:px-4 md:px-6 py-2 rounded-lg sm:rounded-xl font-bold shadow-lg transition-all flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial justify-center ${btnBack}`}
             >
               ← Kembali
             </button>
@@ -141,9 +173,9 @@ const ManajemenUser: React.FC = () => {
 
         {/* DATA - Desktop: Table, Mobile: Cards */}
         {/* Desktop Table */}
-        <div className="hidden md:block backdrop-blur-xl border rounded-2xl overflow-hidden shadow-2xl relative z-20 bg-blue-950/30 border-white/30">
+        <div className={`hidden md:block backdrop-blur-xl border rounded-2xl overflow-hidden shadow-2xl relative z-20 ${cardBg}`}>
           <table className="w-full text-left">
-            <thead className="text-xs sm:text-sm uppercase tracking-wider bg-white/5 text-blue-200">
+            <thead className={`text-xs sm:text-sm uppercase tracking-wider ${isDark ? 'bg-white/5 text-blue-200' : 'bg-slate-100/80 text-slate-500'}`}>
               <tr>
                 <th className="p-3 md:p-4 font-semibold">Username</th>
                 <th className="p-3 md:p-4 font-semibold">Nama Lengkap</th>
@@ -152,14 +184,14 @@ const ManajemenUser: React.FC = () => {
                 <th className="p-3 md:p-4 font-semibold text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y text-sm divide-white/5">
+            <tbody className={`divide-y text-sm ${dividerColor}`}>
               {isLoading ? (
-                <tr><td colSpan={5} className="p-8 text-center text-blue-300/80">Sedang memuat data...</td></tr>
+                <tr><td colSpan={5} className={`p-8 text-center ${loadingColor}`}>Sedang memuat data...</td></tr>
               ) : users.map((user) => (
-                <tr key={user.id} className="transition-colors hover:bg-white/5">
-                  <td className="p-3 md:p-4 font-mono text-xs md:text-sm text-blue-300">{user.username}</td>
-                  <td className="p-3 md:p-4 font-bold text-xs md:text-sm text-white">{user.nama}</td>
-                  <td className="p-3 md:p-4 text-xs md:text-sm text-blue-200">{user.opd || '-'}</td>
+                <tr key={user.id} className={`transition-colors ${rowHover}`}>
+                  <td className={`p-3 md:p-4 font-mono text-xs md:text-sm ${cellUser}`}>{user.username}</td>
+                  <td className={`p-3 md:p-4 font-bold text-xs md:text-sm ${cellName}`}>{user.nama}</td>
+                  <td className={`p-3 md:p-4 text-xs md:text-sm ${cellOpd}`}>{user.opd || '-'}</td>
                   <td className="p-3 md:p-4">
                     <span className={`px-2 py-1 rounded text-[10px] md:text-xs font-bold ${user.role === 'super_admin' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-green-500/20 text-green-300 border border-green-500/30'}`}>
                       {user.role === 'super_admin' ? 'SUPER ADMIN' : 'ADMIN OPD'}
@@ -188,22 +220,22 @@ const ManajemenUser: React.FC = () => {
         {/* Mobile Cards */}
         <div className="md:hidden space-y-3 relative z-20">
           {isLoading ? (
-            <div className="backdrop-blur-xl border rounded-xl p-6 text-center text-sm bg-blue-950/30 border-white/30 text-blue-300/80">
+            <div className={`backdrop-blur-xl border rounded-xl p-6 text-center text-sm ${cardBg} ${loadingColor}`}>
               Sedang memuat data...
             </div>
           ) : users.map((user) => (
-            <div key={user.id} className="backdrop-blur-xl border rounded-xl p-3 sm:p-4 shadow-lg bg-blue-950/30 border-white/30">
+            <div key={user.id} className={`backdrop-blur-xl border rounded-xl p-3 sm:p-4 shadow-lg ${cardBg}`}>
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <p className="font-bold text-sm text-white">{user.nama}</p>
-                  <p className="font-mono text-xs text-blue-300">@{user.username}</p>
+                  <p className={`font-bold text-sm ${cellName}`}>{user.nama}</p>
+                  <p className={`font-mono text-xs ${cellUser}`}>@{user.username}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${user.role === 'super_admin' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-green-500/20 text-green-300 border border-green-500/30'}`}>
                   {user.role === 'super_admin' ? 'SUPER ADMIN' : 'ADMIN OPD'}
                 </span>
               </div>
-              <p className="text-xs mb-3 text-blue-200">{user.opd || 'Tidak ada OPD'}</p>
-              <div className="flex gap-2 border-t pt-2 border-white/5">
+              <p className={`text-xs mb-3 ${cellOpd}`}>{user.opd || 'Tidak ada OPD'}</p>
+              <div className={`flex gap-2 border-t pt-2 ${isDark ? 'border-white/5' : 'border-slate-200/60'}`}>
                 <button
                   onClick={() => handleEdit(user)}
                   className="flex-1 text-center font-medium text-xs py-1.5 rounded-lg text-yellow-400 active:text-yellow-300 bg-yellow-400/5"

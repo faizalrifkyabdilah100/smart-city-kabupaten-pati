@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { loginUser } from '../utils/auth';
 import { useTheme } from '../hooks/useTheme';
+import { GlassInput } from '../components/common/GlassInput';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -53,26 +54,22 @@ const Login: React.FC = () => {
         )}
 
         <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
-          <div>
-            <label className="block text-xs sm:text-sm mb-1.5 sm:mb-2 text-blue-100 uppercase tracking-wider font-semibold">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full border rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/10 border-white/20 text-white placeholder-blue-300/50"
-              placeholder="Masukkan username"
-            />
-          </div>
-          <div>
-            <label className="block text-xs sm:text-sm mb-1.5 sm:mb-2 text-blue-100 uppercase tracking-wider font-semibold">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/10 border-white/20 text-white placeholder-blue-300/50"
-              placeholder="••••••••"
-            />
-          </div>
+          <GlassInput
+            label="Username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Masukkan username"
+            required
+          />
+          <GlassInput
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+          />
           <button
             type="submit"
             disabled={isLoading}
@@ -95,7 +92,7 @@ const Login: React.FC = () => {
           </button>
         </div>
       </motion.div>
-    </div >
+    </div>
   );
 };
 
