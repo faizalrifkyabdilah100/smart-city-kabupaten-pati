@@ -15,13 +15,13 @@ export function useAuth() {
     const [user, setUser] = useState<UserInfo | null>(null);
 
     useEffect(() => {
-        // Fungsi baca user dari localStorage
+        // Baca data user dari sessionStorage (bukan localStorage — lebih aman)
         const updateUser = () => {
             try {
-                const raw = localStorage.getItem('user_data');
+                const raw = sessionStorage.getItem('user_data');
                 if (raw) setUser(JSON.parse(raw));
                 else setUser(null);
-            } catch (e) {
+            } catch {
                 setUser(null);
             }
         };

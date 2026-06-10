@@ -118,27 +118,34 @@ const Kominfo: React.FC = () => {
     };
   }, []);
 
-  // Auto-refresh server monitoring 2
+  // Auto-refresh server monitoring 2 — sequential polling (bukan setInterval)
+  // Endpoint /vmlinux lambat (30-60 detik), jadi tunggu response selesai dulu
+  // baru jadwalkan request berikutnya 30 detik kemudian agar tidak tumpang tindih.
   useEffect(() => {
     let isMounted = true;
+    let timerId: ReturnType<typeof setTimeout>;
 
     const loadServers2 = async () => {
       const data = await fetchServerData2();
-      if (data && isMounted) {
+      if (!isMounted) return;
+
+      if (data) {
         setServerData2(data);
         setServerError2(false);
-      } else if (isMounted) {
+      } else {
         setServerError2(true);
       }
-      if (isMounted) setServerLoading2(false);
+      setServerLoading2(false);
+
+      // Jadwalkan request berikutnya setelah response selesai
+      timerId = setTimeout(loadServers2, 30000);
     };
 
     loadServers2();
-    const interval = setInterval(loadServers2, 500000);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      clearTimeout(timerId);
     };
   }, []);
 
@@ -179,6 +186,16 @@ const Kominfo: React.FC = () => {
   const handleLocationClick = useCallback((lat: number, lng: number) => {
     setMapCenter([lat, lng]);
     setMapZoom(17);
+  }, []);
+
+  // Manual retry untuk Server Monitoring 2
+  const retryServer2 = useCallback(async () => {
+    setServerLoading2(true);
+    setServerError2(false);
+    const data = await fetchServerData2();
+    setServerData2(data);
+    setServerError2(!data);
+    setServerLoading2(false);
   }, []);
 
   return (
@@ -238,6 +255,7 @@ const Kominfo: React.FC = () => {
               pulseColor={isDark ? 'bg-purple-400' : 'bg-purple-500'}
               hoverBorderColor="hover:border-purple-400/30"
               apiHint="SERVER_API_URL_2"
+              onRetry={retryServer2}
             />
           </div>
 

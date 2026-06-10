@@ -1,62 +1,60 @@
-/**
- * Auth Controller
- * ================
- * Ini pengganti AuthController.php di CI4
- * Handle login user
- */
-
 const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'smart-city-pati-secret-key-change-me';
+// Opsi cookie — HttpOnly mencegah akses dari JavaScript (XSS protection)
+const COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // HTTPS only di production
+    sameSite: 'strict',                             // Mitigasi CSRF
+    maxAge: 24 * 60 * 60 * 1000,                   // 24 jam dalam milidetik
+    path: '/',
+};
+
+// CSRF cookie — httpOnly: false agar JS frontend bisa membacanya (Double Submit Cookie pattern)
+const CSRF_COOKIE_OPTIONS = {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000,
+    path: '/',
+};
+
+// Dummy hash untuk timing-safe check saat user tidak ditemukan
+const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012';
 
 const authController = {
-    /**
-     * LOGIN
-     * POST /api/login
-     * Body: { username, password }
-     * 
-     * Sama persis logikanya sama AuthController.php:
-     * 1. Ambil data JSON
-     * 2. Cari user di database
-     * 3. Cek password
-     * 4. Kembalikan data tanpa password
-     */
+
     login: async (req, res) => {
         try {
             const { username, password } = req.body;
 
-            // 1. Cek ada data yang dikirim gak?
             if (!username || !password) {
                 return res.status(400).json({
                     status: 400,
-                    messages: { error: 'Tidak ada data yang dikirim.' },
+                    messages: { error: 'Username dan password wajib diisi.' },
                 });
             }
 
-            // 2. Cari user di database
             const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
             const user = rows[0];
 
-            // 3. Cek User Ada?
+            // Pesan error SAMA untuk user tidak ada maupun password salah
+            // (mencegah user enumeration attack)
+            const INVALID_MSG = 'Username atau password salah.';
+
             if (!user) {
-                return res.status(404).json({
-                    status: 404,
-                    messages: { error: 'Username tidak ditemukan.' },
-                });
+                // Tetap jalankan bcrypt.compare untuk mencegah timing attack
+                await bcrypt.compare(password, DUMMY_HASH);
+                return res.status(401).json({ status: 401, messages: { error: INVALID_MSG } });
             }
 
-            // 4. Cek Password (bcrypt compare)
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                return res.status(401).json({
-                    status: 401,
-                    messages: { error: 'Password salah.' },
-                });
+                return res.status(401).json({ status: 401, messages: { error: INVALID_MSG } });
             }
 
-            // 5. Sukses! Buat JWT token & kembalikan data (Tanpa Password)
             const dataResponse = {
                 id: user.id,
                 username: user.username,
@@ -65,13 +63,20 @@ const authController = {
                 opd: user.opd,
             };
 
-            const token = jwt.sign(dataResponse, JWT_SECRET, { expiresIn: '24h' });
+            const token = jwt.sign(dataResponse, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+            // Set JWT sebagai HttpOnly cookie — tidak bisa diakses JavaScript
+            res.cookie('authToken', token, COOKIE_OPTIONS);
+
+            // Set CSRF token sebagai cookie biasa — dibaca frontend dan dikirim sebagai header
+            const csrfToken = crypto.randomBytes(32).toString('hex');
+            res.cookie('csrfToken', csrfToken, CSRF_COOKIE_OPTIONS);
 
             return res.status(200).json({
                 status: 200,
                 message: 'Login Berhasil',
                 data: dataResponse,
-                token,
+                // token TIDAK dikembalikan di body
             });
 
         } catch (error) {
@@ -81,6 +86,17 @@ const authController = {
                 messages: { error: 'Internal server error' },
             });
         }
+    },
+
+    logout: (req, res) => {
+        res.clearCookie('authToken', { ...COOKIE_OPTIONS, maxAge: 0 });
+        res.clearCookie('csrfToken', { ...CSRF_COOKIE_OPTIONS, maxAge: 0 });
+        return res.status(200).json({ status: 200, message: 'Logout berhasil' });
+    },
+
+    me: (req, res) => {
+        // req.user sudah di-attach oleh authMiddleware setelah verifikasi signature JWT
+        return res.status(200).json({ status: 200, data: req.user });
     },
 };
 

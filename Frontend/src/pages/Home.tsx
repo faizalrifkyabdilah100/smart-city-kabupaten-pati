@@ -112,7 +112,7 @@ const Home: React.FC = () => {
 
         {/* Footer Logo Kecil */}
         <div className={`absolute bottom-4 right-4 sm:bottom-6 sm:right-6 opacity-80 hover:opacity-100 transition-all duration-500 cursor-pointer z-50`}>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm rounded-lg shadow-lg flex items-center justify-center p-1.5 sm:p-2 border transition-colors duration-500 ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/60 border-white/40'}`}>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm rounded-lg shadow-lg flex items-center justify-center p-1.5 sm:p-2 border bg-white/10 border-white/20">
             <img src={logoSmartCity} alt="logo footer" className="w-full h-full object-contain" />
           </div>
         </div>

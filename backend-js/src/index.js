@@ -20,8 +20,16 @@
 // Load environment variables dari .env
 require('dotenv').config();
 
+// Pastikan JWT_SECRET dikonfigurasi — jangan pakai fallback hardcoded
+if (!process.env.JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET belum dikonfigurasi di .env. Server tidak dapat dijalankan.');
+    process.exit(1);
+}
+
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -36,27 +44,36 @@ const PORT = process.env.PORT || 8080;
 // MIDDLEWARE
 // ================================
 
-// CORS - sama seperti Cors.php filter di CI4
-// Allow frontend di localhost:5173
+// Rate limiter untuk endpoint login (mencegah brute force)
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 menit
+    max: 10,                   // max 10 percobaan per IP
+    message: {
+        status: 429,
+        messages: { error: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// CORS — credentials: true wajib untuk HttpOnly cookie
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-        'X-API-KEY',
-        'Origin',
-        'X-Requested-With',
-        'Content-Type',
-        'Accept',
-        'Authorization',
-        'Access-Control-Request-Method',
-    ],
-    exposedHeaders: ['Content-Type'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'X-CSRF-Token'],
+    credentials: true,
     maxAge: 7200,
 }));
+
+// Cookie parser — untuk membaca HttpOnly auth cookie
+app.use(cookieParser());
 
 // Parse JSON body (pengganti $this->request->getJSON() di CI4)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Terapkan rate limiter hanya pada route login
+app.use('/api/login', loginLimiter);
 
 // ================================
 // ROUTES

@@ -32,10 +32,10 @@ export const Spinner: React.FC<SpinnerProps> = ({
 
     const labelColor =
         isDark === undefined
-            ? 'text-slate-400'
+            ? 'text-white/60'
             : isDark
                 ? 'text-slate-500'
-                : 'text-blue-200';
+                : 'text-white/60';
 
     return (
         <div className="flex flex-col items-center gap-2">

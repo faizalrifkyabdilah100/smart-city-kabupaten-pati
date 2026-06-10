@@ -1,12 +1,5 @@
-// =========================================
-// AUTH UTILITY FUNCTIONS
-// =========================================
-// Fungsi login, logout, dan helper autentikasi.
-// Token JWT disimpan di localStorage untuk dikirim di setiap request.
-
 import { API_BASE_URL } from '../config/api';
 
-// Tipe response dari fungsi loginUser
 interface LoginResult {
     success: boolean;
     data?: any;
@@ -14,10 +7,8 @@ interface LoginResult {
 }
 
 /**
- * Fungsi Login User
- * - Kirim username & password ke backend
- * - Simpan data user + JWT token ke localStorage kalau berhasil
- * - Dispatch event 'user_login_success' supaya Navbar & Home update
+ * Login — token JWT disimpan server sebagai HttpOnly cookie (tidak bisa dicuri via XSS).
+ * Hanya data user (non-sensitif) yang disimpan di sessionStorage untuk keperluan UI.
  */
 export async function loginUser(username: string, password: string): Promise<LoginResult> {
     try {
@@ -25,71 +16,69 @@ export async function loginUser(username: string, password: string): Promise<Log
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
+            credentials: 'include', // Terima HttpOnly cookie dari server
         });
 
         const result = await response.json();
 
         if (response.ok) {
-            // Sukses - Simpan data user & token ke localStorage
-            localStorage.setItem('user_data', JSON.stringify(result.data));
-            localStorage.setItem('auth_token', result.token);
+            sessionStorage.setItem('user_data', JSON.stringify(result.data));
             window.dispatchEvent(new Event('user_login_success'));
             return { success: true, data: result.data };
         } else {
-            // Gagal - Kembalikan pesan error
-            return { success: false, error: result.messages?.error || 'Login Gagal. Periksa username/password.' };
+            return { success: false, error: result.messages?.error || 'Login gagal.' };
         }
     } catch (err) {
         console.error('Login error:', err);
-        return { success: false, error: 'Gagal terhubung ke server Backend.' };
+        return { success: false, error: 'Gagal terhubung ke server backend.' };
     }
 }
 
 /**
- * Fungsi Logout User
- * - Hapus data & token dari localStorage
- * - Dispatch event supaya Navbar & Home update
+ * Logout — bersihkan sessionStorage lokal dan minta server hapus cookie.
+ * UI langsung update; penghapusan cookie di server berjalan di background.
  */
 export function logoutUser(): void {
-    localStorage.removeItem('user_data');
-    localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('user_data');
     window.dispatchEvent(new Event('user_logout_success'));
+
+    // Hapus HttpOnly cookie di server (fire and forget)
+    fetch(`${API_BASE_URL}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+    }).catch(() => {});
 }
 
 /**
- * Ambil auth token dari localStorage
- */
-export function getAuthToken(): string | null {
-    return localStorage.getItem('auth_token');
-}
-
-/**
- * Buat header Authorization untuk fetch request
+ * Header untuk request yang butuh Content-Type.
+ * Autentikasi dilakukan via cookie (dikirim otomatis oleh browser dengan credentials: 'include').
  */
 export function getAuthHeaders(): HeadersInit {
-    const token = getAuthToken();
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-    };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    return headers;
+    return { 'Content-Type': 'application/json' };
 }
 
 /**
- * Cek apakah token masih valid (belum expired)
- * Decode JWT tanpa library (payload = base64)
+ * Cek apakah ada sesi aktif (berdasarkan keberadaan user_data di sessionStorage).
+ * Validasi sesungguhnya dilakukan server via cookie pada setiap API call.
  */
 export function isTokenValid(): boolean {
-    const token = getAuthToken();
-    if (!token) return false;
+    return sessionStorage.getItem('user_data') !== null;
+}
 
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const now = Math.floor(Date.now() / 1000);
-        return payload.exp > now;
-    } catch {
-        return false;
-    }
+/**
+ * Panggil ini saat API mengembalikan 401 — sesi habis atau tidak valid.
+ */
+export function handleUnauthorized(): void {
+    sessionStorage.removeItem('user_data');
+    window.dispatchEvent(new Event('user_logout_success'));
+    window.location.href = '/login';
+}
+
+/**
+ * Baca CSRF token dari cookie — dikirim sebagai X-CSRF-Token header pada request mutasi.
+ * Cookie ini disetel server saat login dan bisa dibaca JS (non-HttpOnly).
+ */
+export function getCsrfToken(): string {
+    const match = document.cookie.match(/(?:^|;\s*)csrfToken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
 }

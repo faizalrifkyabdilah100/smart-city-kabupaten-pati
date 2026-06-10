@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -20,14 +20,21 @@ import { PageHeader } from '../components/common/PageHeader';
 const LingkunganHidup: React.FC = () => {
   const [activeId, setActiveId] = useState<WidgetId | null>(null);
   const { isDark } = useTheme();
-  const { headingStyle, subTextStyle, innerBoxStyle } = useThemeStyles();
+  const { headingStyle, subTextStyle, innerBoxStyle, closeButtonStyle } = useThemeStyles();
+
+  useEffect(() => {
+    if (!activeId) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setActiveId(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [activeId]);
 
   // === CHART STYLE HELPERS ===
-  const axisColor = '#94a3b8';
-  const tooltipBg = isDark ? '#0f172a' : '#1e3a5f';
-  const tooltipBorder = isDark ? '#334155' : '#3b82c8';
-  const tooltipText = '#ffffff';
-  const cursorFill = 'rgba(255,255,255,0.05)';
+  const axisColor = isDark ? '#94a3b8' : '#bfdbfe';
+  const tooltipBg = isDark ? '#0f172a' : '#1e3a8a';
+  const tooltipBorder = isDark ? '#334155' : '#3b82f6';
+  const tooltipText = isDark ? '#ffffff' : '#ffffff';
+  const cursorFill = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)';
 
   // === FUNGSI RENDER KONTEN ===
   const renderContent = (id: WidgetId, isExpanded: boolean) => {
@@ -38,12 +45,12 @@ const LingkunganHidup: React.FC = () => {
       case 'tpa':
         return (
           <div className="flex-1 flex flex-col justify-center gap-3 sm:gap-4 h-full">
-            <div className={`flex justify-between ${isExpanded ? 'text-sm sm:text-lg' : 'text-[10px] sm:text-xs'} ${isDark ? 'text-blue-200' : 'text-blue-700'}`}>
+            <div className={`flex justify-between ${isExpanded ? 'text-sm sm:text-lg' : 'text-[10px] sm:text-xs'} ${isDark ? 'text-blue-200' : 'text-blue-100'}`}>
               <span>Terisi: <b>{dataTPA.terisi.toLocaleString()} Ton</b></span>
               <span>Kapasitas: <b>{dataTPA.kapasitas.toLocaleString()} Ton</b></span>
             </div>
 
-            <div className={`w-full ${isExpanded ? 'h-6 sm:h-8' : 'h-3 sm:h-4'} rounded-full overflow-hidden relative border shadow-inner ${isDark ? 'bg-slate-800 border-slate-600' : 'bg-slate-200 border-slate-300'}`}>
+            <div className={`w-full ${isExpanded ? 'h-6 sm:h-8' : 'h-3 sm:h-4'} rounded-full overflow-hidden relative border shadow-inner ${isDark ? 'bg-slate-800 border-slate-600' : 'bg-white/20 border-white/30'}`}>
               <div
                 className="h-full bg-gradient-to-r from-green-500 via-yellow-400 to-red-500 relative"
                 style={{ width: `${(dataTPA.terisi / dataTPA.kapasitas) * 100}%` }}
@@ -56,7 +63,7 @@ const LingkunganHidup: React.FC = () => {
 
             <div className="mt-1 text-center">
               <p className={`text-[9px] sm:text-[10px] uppercase tracking-widest mb-1 ${subTextStyle}`}>Estimasi Penuh</p>
-              <div className={`flex items-baseline justify-center gap-1.5 sm:gap-2 ${isExpanded ? 'scale-125 sm:scale-150 mt-4' : ''} ${isDark ? 'text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]' : 'text-slate-900'}`}>
+              <div className={`flex items-baseline justify-center gap-1.5 sm:gap-2 ${isExpanded ? 'scale-125 sm:scale-150 mt-4' : ''} text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]`}>
                 <span className="text-2xl sm:text-4xl font-black">{dataTPA.sisaTahun}</span>
                 <span className={`text-[10px] sm:text-xs font-bold mr-1 sm:mr-2 ${subTextStyle}`}>TH</span>
                 <span className="text-2xl sm:text-4xl font-black">{dataTPA.sisaHari}</span>
@@ -137,7 +144,7 @@ const LingkunganHidup: React.FC = () => {
                   {dataKomposisi.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />)}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, borderRadius: '8px', padding: '10px', fontSize: '12px' }} itemStyle={{ color: tooltipText }} />
-                <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: isExpanded ? '12px' : '10px', fontWeight: 500, color: isDark ? '#cbd5e1' : '#334155' }} />
+                <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: isExpanded ? '12px' : '10px', fontWeight: 500, color: isDark ? '#cbd5e1' : '#e2e8f0' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -154,18 +161,18 @@ const LingkunganHidup: React.FC = () => {
                 style={{ filter: "hue-rotate(90deg) brightness(1.2)" }}
               />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <span className={`${isExpanded ? 'text-4xl sm:text-6xl' : 'text-2xl sm:text-4xl'} font-black ${isDark ? 'text-white' : 'text-slate-900'}`} style={{ textShadow: isDark ? '0 0 20px rgba(74,222,128,0.8)' : '0 0 20px rgba(74,222,128,0.5), 0 2px 4px rgba(0,0,0,0.3)' }}>
+                <span className={`${isExpanded ? 'text-4xl sm:text-6xl' : 'text-2xl sm:text-4xl'} font-black text-white`} style={{ textShadow: '0 0 20px rgba(74,222,128,0.8)' }}>
                   {dataRTH.persen}%
                 </span>
               </div>
             </div>
             <div className="flex gap-3 sm:gap-6 mt-1 text-center z-20 w-full justify-center px-2 sm:px-4">
               <div className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border w-1/2 ${innerBoxStyle}`}>
-                <p className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Luas Area</p>
+                <p className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-blue-200/70' : 'text-white/55'}`}>Luas Area</p>
                 <p className={`${isExpanded ? 'text-base sm:text-xl' : 'text-xs sm:text-sm'} font-bold ${headingStyle}`}>{dataRTH.luas.toLocaleString()} Ha</p>
               </div>
               <div className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border w-1/2 ${innerBoxStyle}`}>
-                <p className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Target</p>
+                <p className={`text-[8px] sm:text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-blue-200/70' : 'text-white/55'}`}>Target</p>
                 <p className={`${isExpanded ? 'text-base sm:text-xl' : 'text-xs sm:text-sm'} font-bold ${headingStyle}`}>{dataRTH.target}%</p>
               </div>
             </div>
@@ -180,17 +187,17 @@ const LingkunganHidup: React.FC = () => {
       onClick={() => setActiveId(id)}
       className={`border rounded-2xl p-3 sm:p-4 md:p-5 transition-all duration-300 h-[200px] sm:h-[220px] md:h-[240px] flex flex-col shadow-xl group cursor-pointer relative overflow-hidden ${isDark
         ? 'bg-slate-900/40 backdrop-blur-md border-white/20 hover:border-cyan-400/50 hover:scale-[1.02] active:scale-[0.98]'
-        : 'bg-blue-950/30 backdrop-blur-md border-white/30 hover:border-cyan-200/50 hover:scale-[1.02] active:scale-[0.98]'
+        : 'bg-white/10 backdrop-blur-md border-white/20 hover:border-white/45 hover:scale-[1.02] active:scale-[0.98]'
         }`}
     >
       <div className="flex justify-between items-start mb-2">
         {title}
-        <div className={`absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] sm:text-xs font-mono px-2 py-1 rounded ${isDark ? 'text-cyan-400 bg-black/50' : 'text-blue-600 bg-slate-100'}`}>
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] sm:text-xs font-mono px-2 py-1 rounded text-cyan-400 bg-black/50">
           Click to Expand ↗
         </div>
       </div>
       {children}
-      <div className={`absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors ${isDark ? 'bg-white/5 group-hover:bg-cyan-400/10' : 'bg-blue-50/50 group-hover:bg-blue-100/60'}`}></div>
+      <div className={`absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors ${isDark ? 'bg-white/5 group-hover:bg-cyan-400/10' : 'bg-white/5 group-hover:bg-cyan-400/10'}`}></div>
     </motion.div>
   );
 
@@ -255,7 +262,7 @@ const LingkunganHidup: React.FC = () => {
                 layoutId={`card-${activeId}`}
                 className={`border rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-5xl h-[85vh] sm:h-[80vh] md:h-[600px] relative shadow-2xl flex flex-col z-[101] overflow-hidden ${isDark
                   ? 'bg-slate-900 border-white/20'
-                  : 'bg-blue-900 border-white/30 shadow-xl'
+                  : 'bg-blue-900 border-white/20 backdrop-blur-xl'
                   }`}
               >
                 <div className="flex justify-between items-center mb-4 sm:mb-6">
@@ -269,7 +276,7 @@ const LingkunganHidup: React.FC = () => {
                   </h2>
                   <button
                     onClick={(e) => { e.stopPropagation(); setActiveId(null); }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shrink-0 text-sm sm:text-base text-white bg-white/10 hover:bg-red-500/20 hover:text-red-400"
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shrink-0 text-sm sm:text-base ${closeButtonStyle}`}
                   >
                     ✕
                   </button>

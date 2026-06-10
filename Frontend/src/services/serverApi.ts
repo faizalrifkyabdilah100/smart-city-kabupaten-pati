@@ -85,7 +85,9 @@ export function getUsageColor(percent: number): string {
  */
 export async function fetchServerData(): Promise<ServerData[] | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/servers`);
+        const response = await fetch(`${API_BASE_URL}/servers`, {
+            credentials: 'include',
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
@@ -100,18 +102,56 @@ export async function fetchServerData(): Promise<ServerData[] | null> {
 }
 
 /**
- * Ambil data monitoring server dari sumber kedua melalui proxy
+ * Ambil data monitoring server dari sumber kedua melalui proxy.
+ * Menangani dua varian format field: capacityMHz (proxmox) dan totalMHz (vm/vmlinux).
  */
 export async function fetchServerData2(): Promise<ServerData[] | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/servers2`);
+        const response = await fetch(`${API_BASE_URL}/servers2`, {
+            credentials: 'include',
+        });
 
         if (!response.ok) {
+            console.error('fetchServerData2: HTTP error', response.status);
             throw new Error(`HTTP Error: ${response.status}`);
         }
 
-        const data: ServerData[] = await response.json();
-        return data;
+        const raw = await response.json();
+
+        if (!Array.isArray(raw)) {
+            console.error('fetchServerData2: respons bukan array —', typeof raw, JSON.stringify(raw).substring(0, 200));
+            return null;
+        }
+
+        // Normalize: handle capacityMHz (proxmox format) dan totalMHz (vm format)
+        return raw.map((item: any): ServerData => {
+            if (item.error) return { label: item.label ?? 'Server', error: item.error };
+            if (!item.resources) return { label: item.label ?? 'Server', error: 'Data resource tidak tersedia' };
+
+            const cpu     = item.resources.cpu     ?? {};
+            const memory  = item.resources.memory  ?? {};
+            const storage = item.resources.storage ?? {};
+
+            return {
+                label: item.label,
+                resources: {
+                    cpu: {
+                        capacityMHz: cpu.capacityMHz ?? cpu.totalMHz ?? 0,
+                        usedMHz:     cpu.usedMHz ?? 0,
+                        cores:       cpu.cores,
+                    },
+                    memory: {
+                        capacityGB: memory.capacityGB ?? 0,
+                        usedGB:     memory.usedGB ?? 0,
+                    },
+                    storage: {
+                        capacityGB: storage.capacityGB ?? 0,
+                        usedGB:     storage.usedGB ?? 0,
+                        freeGB:     storage.freeGB ?? ((storage.capacityGB ?? 0) - (storage.usedGB ?? 0)),
+                    },
+                },
+            };
+        });
     } catch (error) {
         console.error('Gagal mengambil data server 2:', error);
         return null;
@@ -123,7 +163,9 @@ export async function fetchServerData2(): Promise<ServerData[] | null> {
  */
 export async function fetchVmServerData(): Promise<ServerData[] | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/vm`);
+        const response = await fetch(`${API_BASE_URL}/vm`, {
+            credentials: 'include',
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);

@@ -53,7 +53,9 @@ export function formatBitrate(bytes: number): string {
  */
 export async function fetchTrafficData(): Promise<TrafficData | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/traffic`);
+        const response = await fetch(`${API_BASE_URL}/traffic`, {
+            credentials: 'include',
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);

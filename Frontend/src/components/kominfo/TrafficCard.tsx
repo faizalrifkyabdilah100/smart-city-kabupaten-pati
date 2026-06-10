@@ -21,7 +21,7 @@ interface TrafficCardProps {
 }
 
 export const TrafficCard = ({ isp, loading, isDark, onExpand }: TrafficCardProps) => {
-    const { headingStyle, labelStyle, innerBoxStyleAlt } = useThemeStyles();
+    const { headingStyle, labelStyle, innerBoxStyleAlt, innerBoxStyle } = useThemeStyles();
 
     return (
         <div
@@ -37,13 +37,13 @@ export const TrafficCard = ({ isp, loading, isDark, onExpand }: TrafficCardProps
             </div>
 
             <div className="grid grid-cols-2 gap-1.5">
-                <div className={`rounded-lg p-1.5 border ${isDark ? 'bg-slate-900/40 border-white/5' : 'bg-white/5 border-white/10'}`}>
+                <div className={`rounded-lg p-1.5 border ${innerBoxStyle}`}>
                     <p className={`text-[6px] sm:text-[7px] uppercase tracking-wider mb-0.5 ${labelStyle}`}>↓ RX (Download)</p>
-                    <p className="text-xs sm:text-sm font-bold text-cyan-400">{loading ? '...' : isp.download}</p>
+                    <p className={`text-xs sm:text-sm font-bold ${isDark ? 'text-cyan-400' : 'text-cyan-300'}`}>{loading ? '...' : isp.download}</p>
                 </div>
-                <div className={`rounded-lg p-1.5 border ${isDark ? 'bg-slate-900/40 border-white/5' : 'bg-white/5 border-white/10'}`}>
+                <div className={`rounded-lg p-1.5 border ${innerBoxStyle}`}>
                     <p className={`text-[6px] sm:text-[7px] uppercase tracking-wider mb-0.5 ${labelStyle}`}>↑ TX (Upload)</p>
-                    <p className="text-xs sm:text-sm font-bold text-blue-400">{loading ? '...' : isp.upload}</p>
+                    <p className={`text-xs sm:text-sm font-bold ${isDark ? 'text-blue-400' : 'text-violet-300'}`}>{loading ? '...' : isp.upload}</p>
                 </div>
             </div>
         </div>

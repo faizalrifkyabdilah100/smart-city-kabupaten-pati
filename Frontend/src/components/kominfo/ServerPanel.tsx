@@ -17,15 +17,16 @@ interface ServerPanelProps {
     error?: boolean;
     isDark: boolean;
     onExpand: (server: ServerData) => void;
-    accentColor: string; // e.g. 'bg-cyan-400'
-    pulseColor: string;  // e.g. 'bg-cyan-400'
-    hoverBorderColor: string; // e.g. 'hover:border-cyan-400/30'
-    apiHint: string; // Nama variabel .env untuk pesan error
+    accentColor: string;
+    pulseColor: string;
+    hoverBorderColor: string;
+    apiHint: string;
+    onRetry?: () => void;
 }
 
 export const ServerPanel = ({
     title, data, loading, error, isDark, onExpand,
-    accentColor, pulseColor, hoverBorderColor, apiHint
+    accentColor, pulseColor, hoverBorderColor, apiHint, onRetry
 }: ServerPanelProps) => {
 
     const { cardStyle, headingStyle } = useThemeStyles();
@@ -57,19 +58,26 @@ export const ServerPanel = ({
                                     <svg className="w-10 h-10 text-red-400/60 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
-                                    <p className={`text-[11px] font-semibold mb-1 text-red-400`}>
+                                    <p className="text-[11px] font-semibold mb-1 text-red-400">
                                         Gagal terhubung ke server
                                     </p>
-                                    <p className={`text-[9px] ${isDark ? 'text-slate-600' : 'text-blue-300/60'}`}>
-                                        Akan dicoba lagi otomatis...
-                                    </p>
+                                    {onRetry ? (
+                                        <button
+                                            onClick={onRetry}
+                                            className="mt-1.5 text-[10px] px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white/65 hover:text-white transition-colors"
+                                        >
+                                            ↺ Coba Lagi
+                                        </button>
+                                    ) : (
+                                        <p className="text-[9px] text-white/30">Akan dicoba lagi otomatis...</p>
+                                    )}
                                 </>
                             ) : (
                                 <>
                                     <svg className="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
                                     </svg>
-                                    <p className={`text-[11px] font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-blue-200'}`}>
+                                    <p className={`text-[11px] font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-blue-200/80'}`}>
                                         Belum ada data server
                                     </p>
                                     <p className={`text-[9px] ${isDark ? 'text-slate-600' : 'text-blue-300/60'}`}>

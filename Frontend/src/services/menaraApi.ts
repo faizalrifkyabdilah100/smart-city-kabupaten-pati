@@ -23,7 +23,9 @@ export interface MenaraData {
  */
 export async function fetchMenaraData(): Promise<MenaraData[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}/menara`);
+        const response = await fetch(`${API_BASE_URL}/menara`, {
+            credentials: 'include',
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);

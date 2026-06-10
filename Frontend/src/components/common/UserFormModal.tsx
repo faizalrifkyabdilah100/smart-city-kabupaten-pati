@@ -12,12 +12,9 @@ interface UserFormModalProps {
   onSave: (data: Omit<User, 'id'>) => Promise<void>;
 }
 
-// Shared input class for <select> elements (mirrors GlassInput compact variant)
-const selectClass =
-  'w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white/10 border-white/20 text-white';
-
 const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData, onClose, onSave }) => {
   const { isDark } = useTheme();
+
   const [formData, setFormData] = useState<Omit<User, 'id'>>({
     username: '',
     nama: '',
@@ -27,7 +24,10 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset form saat modal dibuka
+  const selectClass = `w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-400 outline-none transition-colors ${isDark
+    ? 'bg-white/10 border-white/20 text-white'
+    : 'bg-white/10 border-white/20 text-white'}`;
+
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && initialData) {
@@ -36,13 +36,20 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
           nama: initialData.nama,
           opd: initialData.opd || '',
           role: initialData.role,
-          password: '', // Password kosong saat edit (kecuali mau diganti)
+          password: '',
         });
       } else {
         setFormData({ username: '', nama: '', opd: '', role: 'admin' as const, password: '' });
       }
     }
   }, [isOpen, mode, initialData]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,20 +62,20 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop Gelap */}
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
-            className={`absolute inset-0 backdrop-blur-sm ${isDark ? 'bg-black/60' : 'bg-black/30'}`}
+            className={`absolute inset-0 backdrop-blur-sm ${isDark ? 'bg-black/60' : 'bg-black/50'}`}
           />
 
-          {/* Kartu Modal */}
+          {/* Modal Card */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-            className={`border rounded-2xl p-6 w-full max-w-lg relative z-10 shadow-2xl ${isDark
+            className={`border rounded-2xl p-6 w-full max-w-lg relative z-10 shadow-2xl backdrop-blur-xl ${isDark
               ? 'bg-slate-900 border-white/10'
-              : 'bg-[#1e3a5f] border-white/20 shadow-xl'
-              }`}
+              : 'bg-blue-950/85 border-white/20'
+            }`}
           >
             <h2 className="text-xl font-bold mb-4 text-white">
               {mode === 'add' ? '✨ Tambah User Baru' : '✏️ Edit User'}
@@ -95,7 +102,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs uppercase font-bold mb-1 text-blue-200">Role</label>
+                  <label className={`block text-xs uppercase font-bold mb-1 ${isDark ? 'text-blue-200' : 'text-blue-100'}`}>
+                    Role
+                  </label>
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
@@ -120,7 +129,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
                   <>
                     Password{' '}
                     {mode === 'edit' && (
-                      <span className="font-normal normal-case text-blue-300/70">
+                      <span className={`font-normal normal-case ${isDark ? 'text-blue-300/70' : 'text-blue-200/70'}`}>
                         (Kosongkan jika tidak diubah)
                       </span>
                     )}
@@ -137,13 +146,13 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button" onClick={onClose}
-                  className="px-4 py-2 rounded-lg transition text-blue-200 hover:text-white hover:bg-white/5"
+                  className="px-4 py-2 rounded-lg transition-colors text-blue-200 hover:text-white hover:bg-white/5"
                 >
                   Batal
                 </button>
                 <button
                   type="submit" disabled={isSubmitting}
-                  className="px-6 py-2 text-white font-bold rounded-lg shadow-lg disabled:opacity-50 bg-blue-600 hover:bg-blue-500 shadow-blue-500/20"
+                  className="px-6 py-2 text-white font-bold rounded-lg shadow-lg disabled:opacity-50 bg-blue-600 hover:bg-blue-500 shadow-blue-500/20 transition-colors"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan Data'}
                 </button>

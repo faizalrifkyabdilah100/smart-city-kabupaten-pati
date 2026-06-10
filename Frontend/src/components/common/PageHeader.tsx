@@ -30,12 +30,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     subtitle,
     children,
 }) => {
-    const { subTextStyle, dateBadgeStyle } = useThemeStyles();
+    const { headingStyle, subTextStyle, dateBadgeStyle } = useThemeStyles();
 
     return (
         <div className="w-full py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 animate-slide-down shrink-0 z-20">
             <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight drop-shadow-lg text-white">
+                <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight drop-shadow-lg ${headingStyle}`}>
                     {title} <span className={titleAccentColor}>{titleAccent}</span>
                 </h1>
                 {subtitle && (

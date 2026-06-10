@@ -1,35 +1,27 @@
-/**
- * Auth Middleware (JWT)
- * =====================
- * Middleware untuk memproteksi route yang butuh login.
- * Cek header Authorization: Bearer <token>
- * Jika valid, lanjut ke controller. Jika tidak, tolak 401.
- */
-
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'smart-city-pati-secret-key-change-me';
-
 function authMiddleware(req, res, next) {
-    const authHeader = req.headers.authorization;
+    // Baca token dari HttpOnly cookie (bukan Authorization header)
+    const token = req.cookies?.authToken;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
         return res.status(401).json({
             status: 401,
-            messages: { error: 'Akses ditolak. Token tidak ditemukan.' },
+            messages: { error: 'Akses ditolak. Sesi tidak ditemukan, silakan login.' },
         });
     }
 
-    const token = authHeader.split(' ')[1];
-
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded; // Attach user data ke request
+        // Verifikasi signature JWT dengan secret dari environment
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
         next();
     } catch (err) {
+        // Hapus cookie yang tidak valid
+        res.clearCookie('authToken', { httpOnly: true, sameSite: 'strict', path: '/' });
         return res.status(401).json({
             status: 401,
-            messages: { error: 'Token tidak valid atau sudah kedaluwarsa.' },
+            messages: { error: 'Sesi tidak valid atau sudah berakhir. Silakan login ulang.' },
         });
     }
 }
