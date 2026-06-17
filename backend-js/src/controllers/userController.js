@@ -161,6 +161,14 @@ const userController = {
         try {
             const { id } = req.params;
 
+            // Cegah user menghapus akun dirinya sendiri
+            if (parseInt(id) === req.user?.id) {
+                return res.status(403).json({
+                    status: 403,
+                    messages: { error: 'Tidak dapat menghapus akun Anda sendiri.' },
+                });
+            }
+
             // Cek user ada gak?
             const [existing] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
             if (existing.length === 0) {

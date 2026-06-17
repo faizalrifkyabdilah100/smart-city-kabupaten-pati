@@ -22,6 +22,12 @@ import { PageHeader } from '../components/common/PageHeader';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { Spinner } from '../components/common/Spinner';
 
+// ─── URL Eksternal ──────────────────────────────────────────────────────────
+// Ganti nilai string di bawah dengan URL yang sesuai
+const TRAFFIC_OPD_URL = 'http://103.110.43.236/zabbix/zabbix.php?action=dashboard.view&dashboardid=7&enter=guest';
+const MENARA_WEB_URL = 'http://localhost:3015'; // Aplikasi menara (react_menara) — ganti ke URL production jika sudah deploy
+// ────────────────────────────────────────────────────────────────────────────
+
 const Kominfo: React.FC = () => {
   const { isDark } = useTheme();
   const {
@@ -110,7 +116,7 @@ const Kominfo: React.FC = () => {
     };
 
     loadRealtimeData();
-    const interval = setInterval(loadRealtimeData, 2000);
+    const interval = setInterval(loadRealtimeData, 5000);
 
     return () => {
       isMounted = false;
@@ -278,7 +284,8 @@ const Kominfo: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <Link
-                      to="/cctv-monitor"
+                      // to="/cctv-monitor"
+                      to="http://103.110.43.236:3013/cctv-monitor"
                       className="backdrop-blur-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 hover:border-cyan-400/50 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium text-cyan-400 hover:text-cyan-300 shadow-lg transition-all duration-300 flex items-center gap-1.5"
                     >
                       Lihat Semua CCTV
@@ -303,15 +310,28 @@ const Kominfo: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 className={`md:flex-[2] w-full border rounded-2xl p-3 shadow-xl transition-all flex flex-col overflow-hidden min-w-0 ${cardStyle}`}
               >
-                <h3 className={`font-bold text-xs sm:text-sm mb-2 px-1 flex items-center gap-2 ${headingStyle}`}>
-                  <span className={`w-2 h-2 rounded-full animate-pulse ${trafficError ? 'bg-red-400' : 'bg-cyan-400'}`}></span>
-                  Internet Traffic
-                  {trafficError && (
-                    <span className="text-[8px] font-medium text-red-400/80 bg-red-400/10 border border-red-400/20 px-1.5 py-0.5 rounded">
-                      Offline
-                    </span>
-                  )}
-                </h3>
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <h3 className={`font-bold text-xs sm:text-sm flex items-center gap-2 ${headingStyle}`}>
+                    <span className={`w-2 h-2 rounded-full animate-pulse ${trafficError ? 'bg-red-400' : 'bg-cyan-400'}`}></span>
+                    Internet Traffic
+                    {trafficError && (
+                      <span className="text-[8px] font-medium text-red-400/80 bg-red-400/10 border border-red-400/20 px-1.5 py-0.5 rounded">
+                        Offline
+                      </span>
+                    )}
+                  </h3>
+                  <a
+                    href={TRAFFIC_OPD_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="backdrop-blur-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 hover:border-cyan-400/50 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium text-cyan-400 hover:text-cyan-300 shadow-lg transition-all duration-300 flex items-center gap-1.5 shrink-0"
+                  >
+                    Ke Traffic OPD
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
 
                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-1.5 sm:space-y-2">
                   {(trafficData ? trafficData.isp : [
@@ -337,11 +357,22 @@ const Kominfo: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className={`md:h-[450px] border rounded-2xl overflow-hidden shadow-xl flex flex-col ${cardStyleFlat}`}
             >
-              <div className={`border-b px-3 sm:px-5 py-2 shrink-0 ${isDark
+              <div className={`border-b px-3 sm:px-5 py-2 shrink-0 flex justify-between items-center ${isDark
                 ? 'bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border-white/10'
                 : 'bg-gradient-to-r from-cyan-900/15 to-blue-900/15 border-white/10'
                 }`}>
                 <h3 className={`font-bold text-xs sm:text-sm ${headingStyle}`}>Map Pemetaan Menara</h3>
+                <a
+                  href={MENARA_WEB_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="backdrop-blur-md bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 hover:border-emerald-400/50 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium text-emerald-400 hover:text-emerald-300 shadow-lg transition-all duration-300 flex items-center gap-1.5 shrink-0"
+                >
+                  Ke Web Menara
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
               </div>
               <div className="flex-1 flex flex-col sm:flex-row min-h-0">
                 {/* Map */}

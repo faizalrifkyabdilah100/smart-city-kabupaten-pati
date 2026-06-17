@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
+const { validate, loginSchema } = require('../middleware/validateMiddleware');
 
 // POST /api/login
-router.post('/login', authController.login);
+router.post('/login', validate(loginSchema), authController.login);
 
 // POST /api/logout — hapus HttpOnly cookie
 router.post('/logout', authController.logout);

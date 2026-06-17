@@ -30,6 +30,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -55,6 +56,13 @@ const loginLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+// Helmet — HTTP security headers (X-Frame-Options, X-Content-Type-Options, dll)
+// crossOriginEmbedderPolicy & CSP dimatikan agar CCTV iframe dan fetch frontend tetap jalan
+app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+}));
 
 // CORS — credentials: true wajib untuk HttpOnly cookie
 app.use(cors({

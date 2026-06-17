@@ -12,6 +12,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 const csrfMiddleware = require('../middleware/csrfMiddleware');
+const { validate, createUserSchema, updateUserSchema } = require('../middleware/validateMiddleware');
 
 // Semua route user dilindungi auth middleware
 router.use(authMiddleware);
@@ -19,9 +20,9 @@ router.use(authMiddleware);
 // GET    /api/users       → Lihat semua user
 router.get('/', userController.index);
 
-// POST, PUT, DELETE butuh CSRF token tambahan
-router.post('/', csrfMiddleware, userController.create);
-router.put('/:id', csrfMiddleware, userController.update);
+// POST, PUT, DELETE butuh CSRF token + validasi Zod
+router.post('/',    csrfMiddleware, validate(createUserSchema), userController.create);
+router.put('/:id',  csrfMiddleware, validate(updateUserSchema), userController.update);
 router.delete('/:id', csrfMiddleware, userController.delete);
 
 module.exports = router;
