@@ -26,4 +26,15 @@ function authMiddleware(req, res, next) {
     }
 }
 
+function requireSuperAdmin(req, res, next) {
+    if (req.user?.role !== 'super_admin') {
+        return res.status(403).json({
+            status: 403,
+            messages: { error: 'Akses ditolak. Hanya Super Admin yang dapat melakukan aksi ini.' },
+        });
+    }
+    next();
+}
+
 module.exports = authMiddleware;
+module.exports.requireSuperAdmin = requireSuperAdmin;

@@ -1,8 +1,92 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type User } from '../../types';
 import { useTheme } from '../../hooks/useTheme';
 import { GlassInput } from './GlassInput';
+
+// Custom dropdown untuk menggantikan native <select> yang tampilannya tidak bisa dikontrol penuh
+interface SelectOption { value: string; label: string; }
+interface CustomSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: SelectOption[];
+  isDark: boolean;
+}
+
+const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, isDark }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Tutup dropdown kalau klik di luar
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = options.find(o => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className={`w-full flex items-center justify-between border rounded-lg px-3 py-2.5 text-sm transition-colors outline-none focus:ring-2 focus:ring-blue-400
+          ${isDark
+            ? 'bg-white/10 border-white/20 text-white hover:bg-white/15'
+            : 'bg-white/10 border-white/20 text-white hover:bg-white/15'
+          }`}
+      >
+        <span>{selected?.label ?? '—'}</span>
+        <svg
+          className={`w-4 h-4 transition-transform duration-200 text-slate-400 ${open ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Dropdown list */}
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            initial={{ opacity: 0, y: -6, scaleY: 0.95 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -6, scaleY: 0.95 }}
+            transition={{ duration: 0.12 }}
+            className={`absolute z-50 mt-1 w-full rounded-xl border shadow-xl overflow-hidden origin-top
+              ${isDark
+                ? 'bg-slate-800 border-white/10'
+                : 'bg-blue-950 border-white/15'
+              }`}
+          >
+            {options.map(opt => (
+              <li
+                key={opt.value}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={`px-3 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between
+                  ${value === opt.value
+                    ? isDark ? 'bg-cyan-500/20 text-cyan-300' : 'bg-blue-500/30 text-cyan-300'
+                    : isDark ? 'text-slate-200 hover:bg-white/10' : 'text-blue-100 hover:bg-white/10'
+                  }`}
+              >
+                {opt.label}
+                {value === opt.value && (
+                  <svg className="w-3.5 h-3.5 text-cyan-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15l-4.121-4.121a1 1 0 011.414-1.414L8.414 12.172l6.879-6.879a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 interface UserFormModalProps {
   isOpen: boolean;
@@ -23,10 +107,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
     password: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const selectClass = `w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-400 outline-none transition-colors ${isDark
-    ? 'bg-white/10 border-white/20 text-white'
-    : 'bg-white/10 border-white/20 text-white'}`;
 
   useEffect(() => {
     if (isOpen) {
@@ -105,14 +185,15 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, mode, initialData
                   <label className={`block text-xs uppercase font-bold mb-1 ${isDark ? 'text-blue-200' : 'text-blue-100'}`}>
                     Role
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
-                    className={selectClass}
-                  >
-                    <option value="admin">Admin OPD</option>
-                    <option value="super_admin">Super Admin</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, role: val as User['role'] })}
+                    options={[
+                      { value: 'admin', label: 'Admin OPD' },
+                      { value: 'super_admin', label: 'Super Admin' },
+                    ]}
+                    isDark={isDark}
+                  />
                 </div>
                 <GlassInput
                   label="OPD / Instansi"
