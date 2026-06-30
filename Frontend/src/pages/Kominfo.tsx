@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import SmartCityLayout from '../components/layout/SmartCityLayout';
 import { motion } from 'framer-motion';
 import { useTheme } from '../hooks/useTheme';
@@ -283,16 +282,17 @@ const Kominfo: React.FC = () => {
                     <p className={`text-[10px] sm:text-xs ${subTextStyle}`}>{cctvData?.location || 'Memuat...'}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Link
-                      // to="/cctv-monitor"
-                      to="http://103.110.43.236:3013/cctv-monitor"
+                    <a
+                      href="http://103.110.43.236:3013/cctv-monitor"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="backdrop-blur-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 hover:border-cyan-400/50 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium text-cyan-400 hover:text-cyan-300 shadow-lg transition-all duration-300 flex items-center gap-1.5"
                     >
                       Lihat Semua CCTV
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                    </Link>
+                    </a>
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                       <span className="text-[10px] sm:text-xs font-bold text-red-400">{cctvData?.status || 'Live'}</span>

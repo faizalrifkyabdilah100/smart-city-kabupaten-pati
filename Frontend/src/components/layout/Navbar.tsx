@@ -38,7 +38,7 @@ const Navbar: React.FC<Props> = ({ show, showLogout = true }) => {
         {/* Badge Kabupaten */}
         <div className="backdrop-blur-md px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-full shadow-xl cursor-default bg-white/10 border border-white/20 hover:bg-white/20 transition-colors duration-500">
           <span className="text-[10px] sm:text-xs md:text-sm lg:text-base font-bold tracking-[0.2em] sm:tracking-[0.3em] drop-shadow-md text-white">
-            KABUPATEN DEMAK
+            KABUPATEN PATI
           </span>
         </div>
 
